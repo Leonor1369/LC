@@ -59,6 +59,32 @@
     },
     {
       "id": "lEQa",
+      "code_hash": "99604479d9003b2e11f023fcd1c9f620",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "PKri",
+      "code_hash": "6d4f005f24e6b7f3c1e7e54c209937af",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"horario-gerado\">Hor\u00e1rio gerado</h2>\n<span class=\"paragraph\">O solver encontrou <strong>32 sess\u00f5es</strong>.</span>\n<table>\n<thead>\n<tr>\n<th>Dia</th>\n<th style=\"text-align: right;\">Per\u00edodos</th>\n<th>Turma</th>\n<th>Disciplina</th>\n<th>Professor</th>\n<th>Sala</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>Seg</td>\n<td style=\"text-align: right;\">1-1</td>\n<td>7\u00baA</td>\n<td>Hist\u00f3ria</td>\n<td>Prof. Diana</td>\n<td>Sala normal</td>\n</tr>\n<tr>\n<td>Seg</td>\n<td style=\"text-align: right;\">1-1</td>\n<td>7\u00baB</td>\n<td>Portugu\u00eas</td>\n<td>Prof. Bruno</td>\n<td>Sala normal</td>\n</tr>\n<tr>\n<td>Seg</td>\n<td style=\"text-align: right;\">2-2</td>\n<td>7\u00baA</td>\n<td>Ingl\u00eas</td>\n<td>Prof. Diana</td>\n<td>Sala normal</td>\n</tr>\n<tr>\n<td>Seg</td>\n<td style=\"text-align: right;\">3-3</td>\n<td>7\u00baB</td>\n<td>Matem\u00e1tica</td>\n<td>Prof. Ana</td>\n<td>Sala normal</td>\n</tr>\n<tr>\n<td>Seg</td>\n<td style=\"text-align: right;\">4-4</td>\n<td>7\u00baA</td>\n<td>Ci\u00eancias</td>\n<td>Prof. Carla</td>\n<td>Laborat\u00f3rio</td>\n</tr>\n<tr>\n<td>Seg</td>\n<td style=\"text-align: right;\">4-4</td>\n<td>7\u00baB</td>\n<td>Hist\u00f3ria</td>\n<td>Prof. Diana</td>\n<td>Sala normal</td>\n</tr>\n<tr>\n<td>Seg</td>\n<td style=\"text-align: right;\">5-5</td>\n<td>7\u00baA</td>\n<td>Portugu\u00eas</td>\n<td>Prof. Bruno</td>\n<td>Sala normal</td>\n</tr>\n<tr>\n<td>Seg</td>\n<td style=\"text-align: right;\">5-5</td>\n<td>7\u00baB</td>\n<td>Ci\u00eancias</td>\n<td>Prof. Carla</td>\n<td>Laborat\u00f3rio</td>\n</tr>\n<tr>\n<td>Ter</td>\n<td style=\"text-align: right;\">2-2</td>\n<td>7\u00baA</td>\n<td>Ingl\u00eas</td>\n<td>Prof. Diana</td>\n<td>Sala normal</td>\n</tr>\n<tr>\n<td>Ter</td>\n<td style=\"text-align: right;\">3-3</td>\n<td>7\u00baB</td>\n<td>Matem\u00e1tica</td>\n<td>Prof. Ana</td>\n<td>Sala normal</td>\n</tr>\n<tr>\n<td>Ter</td>\n<td style=\"text-align: right;\">4-4</td>\n<td>7\u00baA</td>\n<td>Portugu\u00eas</td>\n<td>Prof. Bruno</td>\n<td>Sala normal</td>\n</tr>\n<tr>\n<td>Ter</td>\n<td style=\"text-align: right;\">4-4</td>\n<td>7\u00baB</td>\n<td>Ingl\u00eas</td>\n<td>Prof. Diana</td>\n<td>Sala normal</td>\n</tr>\n<tr>\n<td>Ter</td>\n<td style=\"text-align: right;\">5-5</td>\n<td>7\u00baA</td>\n<td>Matem\u00e1tica</td>\n<td>Prof. Ana</td>\n<td>Sala normal</td>\n</tr>\n<tr>\n<td>Ter</td>\n<td style=\"text-align: right;\">5-5</td>\n<td>7\u00baB</td>\n<td>Portugu\u00eas</td>\n<td>Prof. Bruno</td>\n<td>Sala normal</td>\n</tr>\n<tr>\n<td>Qua</td>\n<td style=\"text-align: right;\">1-1</td>\n<td>7\u00baB</td>\n<td>Ci\u00eancias</td>\n<td>Prof. Carla</td>\n<td>Laborat\u00f3rio</td>\n</tr>\n<tr>\n<td>Qua</td>\n<td style=\"text-align: right;\">3-3</td>\n<td>7\u00baA</td>\n<td>Ci\u00eancias</td>\n<td>Prof. Carla</td>\n<td>Laborat\u00f3rio</td>\n</tr>\n<tr>\n<td>Qua</td>\n<td style=\"text-align: right;\">3-3</td>\n<td>7\u00baB</td>\n<td>Hist\u00f3ria</td>\n<td>Prof. Diana</td>\n<td>Sala normal</td>\n</tr>\n<tr>\n<td>Qua</td>\n<td style=\"text-align: right;\">4-4</td>\n<td>7\u00baA</td>\n<td>Hist\u00f3ria</td>\n<td>Prof. Diana</td>\n<td>Sala normal</td>\n</tr>\n<tr>\n<td>Qua</td>\n<td style=\"text-align: right;\">4-5</td>\n<td>7\u00baB</td>\n<td>Educa\u00e7\u00e3o F\u00edsica</td>\n<td>Prof. Eduardo</td>\n<td>Gin\u00e1sio</td>\n</tr>\n<tr>\n<td>Qua</td>\n<td style=\"text-align: right;\">5-5</td>\n<td>7\u00baA</td>\n<td>Matem\u00e1tica</td>\n<td>Prof. Ana</td>\n<td>Sala normal</td>\n</tr>\n<tr>\n<td>Qui</td>\n<td style=\"text-align: right;\">1-1</td>\n<td>7\u00baB</td>\n<td>Ingl\u00eas</td>\n<td>Prof. Diana</td>\n<td>Sala normal</td>\n</tr>\n<tr>\n<td>Qui</td>\n<td style=\"text-align: right;\">3-3</td>\n<td>7\u00baB</td>\n<td>Portugu\u00eas</td>\n<td>Prof. Bruno</td>\n<td>Sala normal</td>\n</tr>\n<tr>\n<td>Qui</td>\n<td style=\"text-align: right;\">4-4</td>\n<td>7\u00baA</td>\n<td>Matem\u00e1tica</td>\n<td>Prof. Ana</td>\n<td>Sala normal</td>\n</tr>\n<tr>\n<td>Qui</td>\n<td style=\"text-align: right;\">4-4</td>\n<td>7\u00baB</td>\n<td>Ci\u00eancias</td>\n<td>Prof. Carla</td>\n<td>Laborat\u00f3rio</td>\n</tr>\n<tr>\n<td>Qui</td>\n<td style=\"text-align: right;\">5-5</td>\n<td>7\u00baA</td>\n<td>Portugu\u00eas</td>\n<td>Prof. Bruno</td>\n<td>Sala normal</td>\n</tr>\n<tr>\n<td>Qui</td>\n<td style=\"text-align: right;\">5-5</td>\n<td>7\u00baB</td>\n<td>Matem\u00e1tica</td>\n<td>Prof. Ana</td>\n<td>Sala normal</td>\n</tr>\n<tr>\n<td>Sex</td>\n<td style=\"text-align: right;\">1-1</td>\n<td>7\u00baA</td>\n<td>Portugu\u00eas</td>\n<td>Prof. Bruno</td>\n<td>Sala normal</td>\n</tr>\n<tr>\n<td>Sex</td>\n<td style=\"text-align: right;\">2-2</td>\n<td>7\u00baA</td>\n<td>Ci\u00eancias</td>\n<td>Prof. Carla</td>\n<td>Laborat\u00f3rio</td>\n</tr>\n<tr>\n<td>Sex</td>\n<td style=\"text-align: right;\">3-3</td>\n<td>7\u00baA</td>\n<td>Matem\u00e1tica</td>\n<td>Prof. Ana</td>\n<td>Sala normal</td>\n</tr>\n<tr>\n<td>Sex</td>\n<td style=\"text-align: right;\">3-3</td>\n<td>7\u00baB</td>\n<td>Portugu\u00eas</td>\n<td>Prof. Bruno</td>\n<td>Sala normal</td>\n</tr>\n<tr>\n<td>Sex</td>\n<td style=\"text-align: right;\">4-5</td>\n<td>7\u00baA</td>\n<td>Educa\u00e7\u00e3o F\u00edsica</td>\n<td>Prof. Eduardo</td>\n<td>Gin\u00e1sio</td>\n</tr>\n<tr>\n<td>Sex</td>\n<td style=\"text-align: right;\">4-4</td>\n<td>7\u00baB</td>\n<td>Matem\u00e1tica</td>\n<td>Prof. Ana</td>\n<td>Sala normal</td>\n</tr>\n</tbody>\n</table></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Xref",
       "code_hash": "60925e8874bc45438e34bf0d5618c6e0",
       "outputs": [
         {
@@ -71,13 +97,13 @@
       "console": []
     },
     {
-      "id": "PKri",
-      "code_hash": "dd63c966b97a7d2f7f182d06b581bb4b",
+      "id": "SFPL",
+      "code_hash": "674df1e25a5bf2a23819e20ff5dfda7d",
       "outputs": [
         {
           "type": "data",
           "data": {
-            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"preparacao-para-o-horario\">Prepara\u00e7\u00e3o para o hor\u00e1rio</h2>\n<h3 id=\"sessoes-de-duplo-periodo\">Sess\u00f5es de duplo per\u00edodo</h3>\n<ul>\n<li>7\u00baA: Educa\u00e7\u00e3o F\u00edsica com Prof. Eduardo (2 per\u00edodos consecutivos)</li>\n<li>7\u00baB: Educa\u00e7\u00e3o F\u00edsica com Prof. Eduardo (2 per\u00edodos consecutivos)</li>\n</ul>\n<h3 id=\"salas-compativeis-por-disciplina\">Salas compat\u00edveis por disciplina</h3>\n<ul>\n<li>Matem\u00e1tica: Sala Normal (capacidade 6)</li>\n<li>Portugu\u00eas: Sala Normal (capacidade 6)</li>\n<li>Ci\u00eancias: Laborat\u00f3rio (capacidade 1)</li>\n<li>Hist\u00f3ria: Sala Normal (capacidade 6)</li>\n<li>Ingl\u00eas: Sala Normal (capacidade 6)</li>\n<li>Educa\u00e7\u00e3o F\u00edsica: Gin\u00e1sio (capacidade 1)</li>\n</ul>\n<span class=\"paragraph\">As sess\u00f5es e op\u00e7\u00f5es de sala est\u00e3o preparadas. O solver ainda ter\u00e1 de escolher\ndia/per\u00edodo e garantir consecutividade dos blocos duplos e limites de capacidade.</span></span>"
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"preparacao-para-o-horario\">Prepara\u00e7\u00e3o para o hor\u00e1rio</h2>\n<h3 id=\"sessoes-de-duplo-periodo\">Sess\u00f5es de duplo per\u00edodo</h3>\n<ul>\n<li>7\u00baA: Educa\u00e7\u00e3o F\u00edsica com Prof. Eduardo (2 per\u00edodos consecutivos)</li>\n<li>7\u00baB: Educa\u00e7\u00e3o F\u00edsica com Prof. Eduardo (2 per\u00edodos consecutivos)</li>\n</ul>\n<h3 id=\"salas-compativeis-por-disciplina\">Salas compat\u00edveis por disciplina</h3>\n<ul>\n<li>Matem\u00e1tica: Sala Normal (capacidade 6)</li>\n<li>Portugu\u00eas: Sala Normal (capacidade 6)</li>\n<li>Ci\u00eancias: Laborat\u00f3rio (capacidade 1)</li>\n<li>Hist\u00f3ria: Sala Normal (capacidade 6)</li>\n<li>Ingl\u00eas: Sala Normal (capacidade 6)</li>\n<li>Educa\u00e7\u00e3o F\u00edsica: Gin\u00e1sio (capacidade 1)</li>\n</ul>\n<span class=\"paragraph\">As sess\u00f5es e op\u00e7\u00f5es de sala est\u00e3o preparadas. A c\u00e9lula seguinte chama o solver\npara escolher dia/per\u00edodo, respeitar blocos duplos e aplicar limites de capacidade.</span></span>"
           }
         }
       ],

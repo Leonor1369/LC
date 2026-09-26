@@ -48,6 +48,35 @@ def _(dados, mo, sessoes):
 
 
 @app.cell
+def _(dados):
+    from solver import gerar_horarios
+
+    horario = gerar_horarios(dados)
+    return (horario,)
+
+
+@app.cell
+def _(horario, mo):
+    linhas_horario = "\n".join(
+        f"| {aula['dia']} | {aula['periodo_inicio']}-"
+        f"{aula['periodo_fim']} | {aula['turma']} | {aula['disciplina']} | "
+        f"{aula['professor']} | {aula['sala']} |"
+        for aula in horario
+    )
+
+    mo.md(f"""
+    ## Horário gerado
+
+    O solver encontrou **{len(horario)} sessões**.
+
+    | Dia | Períodos | Turma | Disciplina | Professor | Sala |
+    |---|---:|---|---|---|---|
+    {linhas_horario}
+    """)
+    return
+
+
+@app.cell
 def _(dados, mo):
     lista_turmas = "\n".join(f"- {turma}" for turma in dados["turmas"])
     lista_disciplinas = "\n".join(
@@ -114,8 +143,8 @@ def _(dados, mo, sessoes):
     ### Salas compatíveis por disciplina
     {texto_salas_compativeis}
 
-    As sessões e opções de sala estão preparadas. O solver ainda terá de escolher
-    dia/período e garantir consecutividade dos blocos duplos e limites de capacidade.
+    As sessões e opções de sala estão preparadas. A célula seguinte chama o solver
+    para escolher dia/período, respeitar blocos duplos e aplicar limites de capacidade.
     """)
     return
 
