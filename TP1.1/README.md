@@ -13,7 +13,7 @@ Este projeto consiste em desenvolver um gerador de horário escolar em Marimo, r
 
 ### Leitura e modelação dos dados
 - [x] Ler `turmas.csv`, `disciplinas.csv`, `salas.csv` e `disponibilidade_excecoes.csv`
-- [ ] Validar que os dados estão no formato correto
+- [x] Validar que os dados estão no formato correto
 - [x] Representar turmas, disciplinas, professores, salas e indisponibilidades em listas/dicionários
 - [ ] Tratar corretamente disciplinas com `duplo_periodo=sim`
 - [ ] Tratar corretamente disciplinas com `sala_especial`
@@ -62,10 +62,10 @@ A partir da pasta do projeto:
 
 ```bash
 cd TP1.1
-marimo run horario_escolar_enunciado.py
+marimo run horario_escolar.py
 ```
 
-O notebook existente chama-se `horario_escolar_enunciado.py`. Quando criares o ficheiro final `horario_escolar.py`, podes trocar o nome no comando.
+O notebook principal chama-se `horario_escolar.py`.
 
 ## Observações
 
