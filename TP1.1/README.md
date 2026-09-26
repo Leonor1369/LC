@@ -5,16 +5,16 @@ Este projeto consiste em desenvolver um gerador de horário escolar em Marimo, r
 ## Checklist para terminar o trabalho
 
 ### Estrutura e execução em Marimo
-- [ ] Criar/editar o notebook principal em Marimo para o problema de horário escolar
+- [x] Criar/editar o notebook principal em Marimo para o problema de horário escolar
 - [ ] Garantir que o projeto corre corretamente em Marimo e não apenas como script Python normal
 - [ ] Confirmar que os ficheiros CSV são lidos a partir da pasta `dados/` e `dados_v2/`
 - [ ] Organizar o código em células Marimo com lógica separada por responsabilidade
-- [ ] Incluir uma forma simples de executar o notebook localmente
+- [x] Incluir uma forma simples de executar o notebook localmente
 
 ### Leitura e modelação dos dados
-- [ ] Ler `turmas.csv`, `disciplinas.csv`, `salas.csv` e `disponibilidade_excecoes.csv`
+- [x] Ler `turmas.csv`, `disciplinas.csv`, `salas.csv` e `disponibilidade_excecoes.csv`
 - [ ] Validar que os dados estão no formato correto
-- [ ] Representar corretamente turmas, disciplinas, professores, salas e indisponibilidades
+- [x] Representar turmas, disciplinas, professores, salas e indisponibilidades em listas/dicionários
 - [ ] Tratar corretamente disciplinas com `duplo_periodo=sim`
 - [ ] Tratar corretamente disciplinas com `sala_especial`
 
@@ -62,10 +62,10 @@ A partir da pasta do projeto:
 
 ```bash
 cd TP1.1
-marimo run horario_escolar.py
+marimo run horario_escolar_enunciado.py
 ```
 
-Se o ficheiro principal estiver com outro nome, ajustar o comando para esse ficheiro. O objetivo é que o notebook esteja pronto para abrir e executar diretamente no ambiente Marimo.
+O notebook existente chama-se `horario_escolar_enunciado.py`. Quando criares o ficheiro final `horario_escolar.py`, podes trocar o nome no comando.
 
 ## Observações
 

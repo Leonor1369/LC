@@ -2,13 +2,20 @@
   "version": "1",
   "metadata": {
     "marimo_version": "0.25.0",
-    "script_metadata_hash": "cdac4f193ea60f385129ed849f93ec6c"
+    "script_metadata_hash": null
   },
   "cells": [
     {
-      "id": "setup",
-      "code_hash": "1d0db38904205bec4d6f6f6a1f6cec3e",
-      "outputs": [],
+      "id": "TFCX",
+      "code_hash": "5140772a20e726fe510108a88690cea4",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "application/json": "{\"turmas\": [\"7\\u00baA\", \"7\\u00baB\"], \"salas\": [{\"sala\": \"Sala Normal\", \"tipo\": \"normal\", \"quantidade\": 6}, {\"sala\": \"Laborat\\u00f3rio\", \"tipo\": \"especial\", \"quantidade\": 1}, {\"sala\": \"Gin\\u00e1sio\", \"tipo\": \"especial\", \"quantidade\": 1}], \"disciplinas\": [{\"disciplina\": \"Matem\\u00e1tica\", \"professor\": \"Prof. Ana\", \"carga_semanal\": 4, \"duplo_periodo\": false, \"sala_especial\": \"\"}, {\"disciplina\": \"Portugu\\u00eas\", \"professor\": \"Prof. Bruno\", \"carga_semanal\": 4, \"duplo_periodo\": false, \"sala_especial\": \"\"}, {\"disciplina\": \"Ci\\u00eancias\", \"professor\": \"Prof. Carla\", \"carga_semanal\": 3, \"duplo_periodo\": false, \"sala_especial\": \"Laborat\\u00f3rio\"}, {\"disciplina\": \"Hist\\u00f3ria\", \"professor\": \"Prof. Diana\", \"carga_semanal\": 2, \"duplo_periodo\": false, \"sala_especial\": \"\"}, {\"disciplina\": \"Ingl\\u00eas\", \"professor\": \"Prof. Diana\", \"carga_semanal\": 2, \"duplo_periodo\": false, \"sala_especial\": \"\"}, {\"disciplina\": \"Educa\\u00e7\\u00e3o F\\u00edsica\", \"professor\": \"Prof. Eduardo\", \"carga_semanal\": 2, \"duplo_periodo\": true, \"sala_especial\": \"Gin\\u00e1sio\"}], \"disponibilidade_excecoes\": [{\"professor\": \"Prof. Eduardo\", \"dia\": \"Seg\", \"periodo\": 1}, {\"professor\": \"Prof. Eduardo\", \"dia\": \"Seg\", \"periodo\": 2}, {\"professor\": \"Prof. Eduardo\", \"dia\": \"Seg\", \"periodo\": 3}, {\"professor\": \"Prof. Eduardo\", \"dia\": \"Ter\", \"periodo\": 1}, {\"professor\": \"Prof. Eduardo\", \"dia\": \"Ter\", \"periodo\": 2}, {\"professor\": \"Prof. Eduardo\", \"dia\": \"Ter\", \"periodo\": 3}, {\"professor\": \"Prof. Eduardo\", \"dia\": \"Qua\", \"periodo\": 1}, {\"professor\": \"Prof. Eduardo\", \"dia\": \"Qua\", \"periodo\": 2}, {\"professor\": \"Prof. Eduardo\", \"dia\": \"Qua\", \"periodo\": 3}, {\"professor\": \"Prof. Eduardo\", \"dia\": \"Qui\", \"periodo\": 1}, {\"professor\": \"Prof. Eduardo\", \"dia\": \"Qui\", \"periodo\": 2}, {\"professor\": \"Prof. Eduardo\", \"dia\": \"Qui\", \"periodo\": 3}, {\"professor\": \"Prof. Eduardo\", \"dia\": \"Sex\", \"periodo\": 1}, {\"professor\": \"Prof. Eduardo\", \"dia\": \"Sex\", \"periodo\": 2}, {\"professor\": \"Prof. Eduardo\", \"dia\": \"Sex\", \"periodo\": 3}]}"
+          }
+        }
+      ],
       "console": []
     }
   ]
