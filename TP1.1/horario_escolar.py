@@ -23,21 +23,34 @@ def _(mo):
 
 
 @app.cell
-def _():
-    from read_data import carregar_dados, construir_sessoes
-
-    dados = carregar_dados()
-    sessoes = construir_sessoes(dados["turmas"], dados["disciplinas"])
-    return dados, sessoes
+def _(mo):
+    pasta_selecionada = mo.ui.dropdown(
+        options=["dados", "dados_v2"],
+        value="dados",
+        label="Escolhe a pasta de dados",
+    )
+    pasta_selecionada
+    return (pasta_selecionada,)
 
 
 @app.cell
-def _(dados, mo, sessoes):
+def _(pasta_selecionada):
+    from read_data import carregar_dados, construir_sessoes
+
+    pasta_dados = pasta_selecionada.value
+    dados = carregar_dados(pasta_dados)
+    sessoes = construir_sessoes(dados["turmas"], dados["disciplinas"])
+    return dados, pasta_dados, sessoes
+
+
+@app.cell
+def _(dados, mo, pasta_dados, sessoes):
     mo.md(f"""
     ## Dados carregados
 
     A validação terminou sem erros.
 
+    - Pasta selecionada: **`{pasta_dados}/`**
     - Turmas: **{len(dados['turmas'])}**
     - Disciplinas: **{len(dados['disciplinas'])}**
     - Salas (tipos/registos): **{len(dados['salas'])}**
@@ -45,7 +58,6 @@ def _(dados, mo, sessoes):
     - Sessões a agendar: **{len(sessoes)}**
     """)
     return
-
 
 @app.cell
 def _(dados, mo):
@@ -114,8 +126,67 @@ def _(dados, mo, sessoes):
     ### Salas compatíveis por disciplina
     {texto_salas_compativeis}
 
-    As sessões e opções de sala estão preparadas. O solver ainda terá de escolher
-    dia/período e garantir consecutividade dos blocos duplos e limites de capacidade.
+    As sessões e opções de sala estão preparadas. A célula seguinte chama o solver
+    para escolher dia/período, respeitar blocos duplos e aplicar limites de capacidade.
+    """)
+    return
+
+@app.cell
+def _(dados):
+    from solver import gerar_horarios
+
+    horario = gerar_horarios(dados)
+    return (horario,)
+
+@app.cell
+def _(dados, horario, mo):
+    dias = ("Seg", "Ter", "Qua", "Qui", "Sex")
+    grelhas_turma = []
+
+    for turma in dados["turmas"]:
+        grelha = {(periodo, dia): [] for periodo in range(1, 6) for dia in dias}
+        for aula in horario:
+            if aula["turma"] != turma:
+                continue
+
+            periodo_inicio = aula["periodo_inicio"]
+            periodo_fim = aula["periodo_fim"]
+            descricao = (
+                f"**{aula['disciplina']}**"
+                f"<br>{aula['professor']}"
+                f"<br>{aula['sala']}"
+            )
+            if periodo_inicio < periodo_fim:
+                descricao += f"<br>(duplo: P{periodo_inicio}-P{periodo_fim})"
+
+            grelha[(periodo_inicio, aula["dia"])].append(descricao)
+            for periodo in range(periodo_inicio + 1, periodo_fim + 1):
+                grelha[(periodo, aula["dia"])].append("↳ continuação do bloco duplo")
+
+        linhas = []
+        for periodo in range(1, 6):
+            celulas = ["<br>".join(grelha[(periodo, dia)]) or "—" for dia in dias]
+            linhas.append(
+                f"| **{periodo}** | " + " | ".join(celulas) + " |"
+            )
+
+        grelhas_turma.append(f"""
+    ### Turma {turma}
+
+    | Período | Seg | Ter | Qua | Qui | Sex |
+    |---:|---|---|---|---|---|
+    {chr(10).join(linhas)}
+    """)
+
+    texto_grelhas = "\n".join(grelhas_turma)
+    mo.md(f"""
+    ## Horário semanal
+
+    O solver encontrou **{len(horario)} sessões**. Cada grelha mostra os períodos
+    nas linhas e os dias da semana nas colunas. As aulas duplas ocupam duas células
+    consecutivas.
+
+    {texto_grelhas}
     """)
     return
 

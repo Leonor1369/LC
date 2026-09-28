@@ -33,7 +33,20 @@
     },
     {
       "id": "vblA",
-      "code_hash": "2a4059106514e763f3f2675145318705",
+      "code_hash": "6a61358300e8eee72ae195413e0ad1aa",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<marimo-ui-element object-id='vblA-0' random-id='2e514fa4-97cc-ad38-50e9-684be28949b8'><marimo-dropdown data-initial-value='[&quot;dados&quot;]' data-label='&quot;&#92;u003cspan class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&#92;u003e&#92;u003cspan class=&#92;&quot;paragraph&#92;&quot;&#92;u003eEscolhe a pasta de dados&#92;u003c/span&#92;u003e&#92;u003c/span&#92;u003e&quot;' data-options='[&quot;dados&quot;,&quot;dados_v2&quot;]' data-allow-select-none='false' data-searchable='false' data-full-width='false' data-disabled='false'></marimo-dropdown></marimo-ui-element>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "bkHC",
+      "code_hash": "91e853de8c622c137c2f084bb8bdaf9a",
       "outputs": [
         {
           "type": "data",
@@ -45,26 +58,13 @@
       "console": []
     },
     {
-      "id": "bkHC",
-      "code_hash": "f785e362bcd5aa83a4b455f724bd5797",
-      "outputs": [
-        {
-          "type": "data",
-          "data": {
-            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"dados-carregados\">Dados carregados</h2>\n<span class=\"paragraph\">A valida\u00e7\u00e3o terminou sem erros.</span>\n<ul>\n<li>Turmas: <strong>2</strong></li>\n<li>Disciplinas: <strong>6</strong></li>\n<li>Salas (tipos/registos): <strong>3</strong></li>\n<li>Exce\u00e7\u00f5es de disponibilidade: <strong>15</strong></li>\n<li>Sess\u00f5es a agendar: <strong>32</strong></li>\n</ul></span>"
-          }
-        }
-      ],
-      "console": []
-    },
-    {
       "id": "lEQa",
-      "code_hash": "60925e8874bc45438e34bf0d5618c6e0",
+      "code_hash": "474c7f68e7e1235a76b1c1f5dba19dcb",
       "outputs": [
         {
           "type": "data",
           "data": {
-            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"dados-de-entrada\">Dados de entrada</h2>\n<h3 id=\"turmas\">Turmas</h3>\n<ul>\n<li>7\u00baA</li>\n<li>7\u00baB</li>\n</ul>\n<h3 id=\"disciplinas\">Disciplinas</h3>\n<ul>\n<li><strong>Matem\u00e1tica</strong>; professor: Prof. Ana; carga: 4; duplo: n\u00e3o; sala especial: n\u00e3o</li>\n<li><strong>Portugu\u00eas</strong>; professor: Prof. Bruno; carga: 4; duplo: n\u00e3o; sala especial: n\u00e3o</li>\n<li><strong>Ci\u00eancias</strong>; professor: Prof. Carla; carga: 3; duplo: n\u00e3o; sala especial: Laborat\u00f3rio</li>\n<li><strong>Hist\u00f3ria</strong>; professor: Prof. Diana; carga: 2; duplo: n\u00e3o; sala especial: n\u00e3o</li>\n<li><strong>Ingl\u00eas</strong>; professor: Prof. Diana; carga: 2; duplo: n\u00e3o; sala especial: n\u00e3o</li>\n<li><strong>Educa\u00e7\u00e3o F\u00edsica</strong>; professor: Prof. Eduardo; carga: 2; duplo: sim; sala especial: Gin\u00e1sio</li>\n</ul>\n<h3 id=\"salas\">Salas</h3>\n<ul>\n<li>Sala Normal (normal), quantidade: 6</li>\n<li>Laborat\u00f3rio (especial), quantidade: 1</li>\n<li>Gin\u00e1sio (especial), quantidade: 1</li>\n</ul>\n<h3 id=\"indisponibilidades\">Indisponibilidades</h3>\n<ul>\n<li>Prof. Eduardo: Seg, per\u00edodo 1</li>\n<li>Prof. Eduardo: Seg, per\u00edodo 2</li>\n<li>Prof. Eduardo: Seg, per\u00edodo 3</li>\n<li>Prof. Eduardo: Ter, per\u00edodo 1</li>\n<li>Prof. Eduardo: Ter, per\u00edodo 2</li>\n<li>Prof. Eduardo: Ter, per\u00edodo 3</li>\n<li>Prof. Eduardo: Qua, per\u00edodo 1</li>\n<li>Prof. Eduardo: Qua, per\u00edodo 2</li>\n<li>Prof. Eduardo: Qua, per\u00edodo 3</li>\n<li>Prof. Eduardo: Qui, per\u00edodo 1</li>\n<li>Prof. Eduardo: Qui, per\u00edodo 2</li>\n<li>Prof. Eduardo: Qui, per\u00edodo 3</li>\n<li>Prof. Eduardo: Sex, per\u00edodo 1</li>\n<li>Prof. Eduardo: Sex, per\u00edodo 2</li>\n<li>Prof. Eduardo: Sex, per\u00edodo 3</li>\n</ul></span>"
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"dados-carregados\">Dados carregados</h2>\n<span class=\"paragraph\">A valida\u00e7\u00e3o terminou sem erros.</span>\n<ul>\n<li>Pasta selecionada: <strong><code>dados_v2/</code></strong></li>\n<li>Turmas: <strong>2</strong></li>\n<li>Disciplinas: <strong>6</strong></li>\n<li>Salas (tipos/registos): <strong>3</strong></li>\n<li>Exce\u00e7\u00f5es de disponibilidade: <strong>17</strong></li>\n<li>Sess\u00f5es a agendar: <strong>32</strong></li>\n</ul></span>"
           }
         }
       ],
@@ -72,12 +72,51 @@
     },
     {
       "id": "PKri",
-      "code_hash": "dd63c966b97a7d2f7f182d06b581bb4b",
+      "code_hash": "60925e8874bc45438e34bf0d5618c6e0",
       "outputs": [
         {
           "type": "data",
           "data": {
-            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"preparacao-para-o-horario\">Prepara\u00e7\u00e3o para o hor\u00e1rio</h2>\n<h3 id=\"sessoes-de-duplo-periodo\">Sess\u00f5es de duplo per\u00edodo</h3>\n<ul>\n<li>7\u00baA: Educa\u00e7\u00e3o F\u00edsica com Prof. Eduardo (2 per\u00edodos consecutivos)</li>\n<li>7\u00baB: Educa\u00e7\u00e3o F\u00edsica com Prof. Eduardo (2 per\u00edodos consecutivos)</li>\n</ul>\n<h3 id=\"salas-compativeis-por-disciplina\">Salas compat\u00edveis por disciplina</h3>\n<ul>\n<li>Matem\u00e1tica: Sala Normal (capacidade 6)</li>\n<li>Portugu\u00eas: Sala Normal (capacidade 6)</li>\n<li>Ci\u00eancias: Laborat\u00f3rio (capacidade 1)</li>\n<li>Hist\u00f3ria: Sala Normal (capacidade 6)</li>\n<li>Ingl\u00eas: Sala Normal (capacidade 6)</li>\n<li>Educa\u00e7\u00e3o F\u00edsica: Gin\u00e1sio (capacidade 1)</li>\n</ul>\n<span class=\"paragraph\">As sess\u00f5es e op\u00e7\u00f5es de sala est\u00e3o preparadas. O solver ainda ter\u00e1 de escolher\ndia/per\u00edodo e garantir consecutividade dos blocos duplos e limites de capacidade.</span></span>"
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"dados-de-entrada\">Dados de entrada</h2>\n<h3 id=\"turmas\">Turmas</h3>\n<ul>\n<li>7\u00baA</li>\n<li>7\u00baB</li>\n</ul>\n<h3 id=\"disciplinas\">Disciplinas</h3>\n<ul>\n<li><strong>Matem\u00e1tica</strong>; professor: Prof. Ana; carga: 4; duplo: n\u00e3o; sala especial: n\u00e3o</li>\n<li><strong>Portugu\u00eas</strong>; professor: Prof. Bruno; carga: 4; duplo: n\u00e3o; sala especial: n\u00e3o</li>\n<li><strong>Ci\u00eancias</strong>; professor: Prof. Carla; carga: 3; duplo: n\u00e3o; sala especial: Laborat\u00f3rio</li>\n<li><strong>Hist\u00f3ria</strong>; professor: Prof. Diana; carga: 2; duplo: n\u00e3o; sala especial: n\u00e3o</li>\n<li><strong>Ingl\u00eas</strong>; professor: Prof. Diana; carga: 2; duplo: n\u00e3o; sala especial: n\u00e3o</li>\n<li><strong>Educa\u00e7\u00e3o F\u00edsica</strong>; professor: Prof. Eduardo; carga: 2; duplo: sim; sala especial: Gin\u00e1sio</li>\n</ul>\n<h3 id=\"salas\">Salas</h3>\n<ul>\n<li>Sala Normal (normal), quantidade: 6</li>\n<li>Laborat\u00f3rio (especial), quantidade: 1</li>\n<li>Gin\u00e1sio (especial), quantidade: 1</li>\n</ul>\n<h3 id=\"indisponibilidades\">Indisponibilidades</h3>\n<ul>\n<li>Prof. Eduardo: Seg, per\u00edodo 1</li>\n<li>Prof. Eduardo: Seg, per\u00edodo 2</li>\n<li>Prof. Eduardo: Seg, per\u00edodo 3</li>\n<li>Prof. Eduardo: Ter, per\u00edodo 1</li>\n<li>Prof. Eduardo: Ter, per\u00edodo 2</li>\n<li>Prof. Eduardo: Ter, per\u00edodo 3</li>\n<li>Prof. Eduardo: Qua, per\u00edodo 1</li>\n<li>Prof. Eduardo: Qua, per\u00edodo 2</li>\n<li>Prof. Eduardo: Qua, per\u00edodo 3</li>\n<li>Prof. Eduardo: Qui, per\u00edodo 1</li>\n<li>Prof. Eduardo: Qui, per\u00edodo 2</li>\n<li>Prof. Eduardo: Qui, per\u00edodo 3</li>\n<li>Prof. Eduardo: Sex, per\u00edodo 1</li>\n<li>Prof. Eduardo: Sex, per\u00edodo 2</li>\n<li>Prof. Eduardo: Sex, per\u00edodo 3</li>\n<li>Prof. Ana: Sex, per\u00edodo 4</li>\n<li>Prof. Ana: Sex, per\u00edodo 5</li>\n</ul></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Xref",
+      "code_hash": "674df1e25a5bf2a23819e20ff5dfda7d",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"preparacao-para-o-horario\">Prepara\u00e7\u00e3o para o hor\u00e1rio</h2>\n<h3 id=\"sessoes-de-duplo-periodo\">Sess\u00f5es de duplo per\u00edodo</h3>\n<ul>\n<li>7\u00baA: Educa\u00e7\u00e3o F\u00edsica com Prof. Eduardo (2 per\u00edodos consecutivos)</li>\n<li>7\u00baB: Educa\u00e7\u00e3o F\u00edsica com Prof. Eduardo (2 per\u00edodos consecutivos)</li>\n</ul>\n<h3 id=\"salas-compativeis-por-disciplina\">Salas compat\u00edveis por disciplina</h3>\n<ul>\n<li>Matem\u00e1tica: Sala Normal (capacidade 6)</li>\n<li>Portugu\u00eas: Sala Normal (capacidade 6)</li>\n<li>Ci\u00eancias: Laborat\u00f3rio (capacidade 1)</li>\n<li>Hist\u00f3ria: Sala Normal (capacidade 6)</li>\n<li>Ingl\u00eas: Sala Normal (capacidade 6)</li>\n<li>Educa\u00e7\u00e3o F\u00edsica: Gin\u00e1sio (capacidade 1)</li>\n</ul>\n<span class=\"paragraph\">As sess\u00f5es e op\u00e7\u00f5es de sala est\u00e3o preparadas. A c\u00e9lula seguinte chama o solver\npara escolher dia/per\u00edodo, respeitar blocos duplos e aplicar limites de capacidade.</span></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "SFPL",
+      "code_hash": "99604479d9003b2e11f023fcd1c9f620",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "BYtC",
+      "code_hash": "eb1f4c30e0041ae9093ba8b3fc9dbbbb",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"horario-semanal\">Hor\u00e1rio semanal</h2>\n<span class=\"paragraph\">O solver encontrou <strong>32 sess\u00f5es</strong>. Cada grelha mostra os per\u00edodos\nnas linhas e os dias da semana nas colunas. As aulas duplas ocupam duas c\u00e9lulas\nconsecutivas.</span>\n<h3 id=\"turma-7oa\">Turma 7\u00baA</h3>\n<table>\n<thead>\n<tr>\n<th style=\"text-align: right;\">Per\u00edodo</th>\n<th>Seg</th>\n<th>Ter</th>\n<th>Qua</th>\n<th>Qui</th>\n<th>Sex</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td style=\"text-align: right;\"><strong>1</strong></td>\n<td><strong>Portugu\u00eas</strong><br>Prof. Bruno<br>Sala normal</td>\n<td><strong>Hist\u00f3ria</strong><br>Prof. Diana<br>Sala normal</td>\n<td>\u2014</td>\n<td><strong>Hist\u00f3ria</strong><br>Prof. Diana<br>Sala normal</td>\n<td>\u2014</td>\n</tr>\n<tr>\n<td style=\"text-align: right;\"><strong>2</strong></td>\n<td>\u2014</td>\n<td><strong>Portugu\u00eas</strong><br>Prof. Bruno<br>Sala normal</td>\n<td><strong>Ci\u00eancias</strong><br>Prof. Carla<br>Laborat\u00f3rio</td>\n<td>\u2014</td>\n<td><strong>Ci\u00eancias</strong><br>Prof. Carla<br>Laborat\u00f3rio</td>\n</tr>\n<tr>\n<td style=\"text-align: right;\"><strong>3</strong></td>\n<td>\u2014</td>\n<td><strong>Ci\u00eancias</strong><br>Prof. Carla<br>Laborat\u00f3rio</td>\n<td>\u2014</td>\n<td>\u2014</td>\n<td><strong>Matem\u00e1tica</strong><br>Prof. Ana<br>Sala normal</td>\n</tr>\n<tr>\n<td style=\"text-align: right;\"><strong>4</strong></td>\n<td>\u2014</td>\n<td><strong>Ingl\u00eas</strong><br>Prof. Diana<br>Sala normal</td>\n<td><strong>Portugu\u00eas</strong><br>Prof. Bruno<br>Sala normal</td>\n<td><strong>Ingl\u00eas</strong><br>Prof. Diana<br>Sala normal</td>\n<td><strong>Educa\u00e7\u00e3o F\u00edsica</strong><br>Prof. Eduardo<br>Gin\u00e1sio<br>(duplo: P4-P5)</td>\n</tr>\n<tr>\n<td style=\"text-align: right;\"><strong>5</strong></td>\n<td><strong>Matem\u00e1tica</strong><br>Prof. Ana<br>Sala normal</td>\n<td><strong>Matem\u00e1tica</strong><br>Prof. Ana<br>Sala normal</td>\n<td><strong>Matem\u00e1tica</strong><br>Prof. Ana<br>Sala normal</td>\n<td><strong>Portugu\u00eas</strong><br>Prof. Bruno<br>Sala normal</td>\n<td>\u21b3 continua\u00e7\u00e3o do bloco duplo</td>\n</tr>\n</tbody>\n</table>\n<h3 id=\"turma-7ob\">Turma 7\u00baB</h3>\n<table>\n<thead>\n<tr>\n<th style=\"text-align: right;\">Per\u00edodo</th>\n<th>Seg</th>\n<th>Ter</th>\n<th>Qua</th>\n<th>Qui</th>\n<th>Sex</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td style=\"text-align: right;\"><strong>1</strong></td>\n<td><strong>Ingl\u00eas</strong><br>Prof. Diana<br>Sala normal</td>\n<td><strong>Ci\u00eancias</strong><br>Prof. Carla<br>Laborat\u00f3rio</td>\n<td>\u2014</td>\n<td>\u2014</td>\n<td><strong>Matem\u00e1tica</strong><br>Prof. Ana<br>Sala normal</td>\n</tr>\n<tr>\n<td style=\"text-align: right;\"><strong>2</strong></td>\n<td><strong>Portugu\u00eas</strong><br>Prof. Bruno<br>Sala normal</td>\n<td>\u2014</td>\n<td>\u2014</td>\n<td><strong>Ingl\u00eas</strong><br>Prof. Diana<br>Sala normal</td>\n<td><strong>Hist\u00f3ria</strong><br>Prof. Diana<br>Sala normal</td>\n</tr>\n<tr>\n<td style=\"text-align: right;\"><strong>3</strong></td>\n<td><strong>Ci\u00eancias</strong><br>Prof. Carla<br>Laborat\u00f3rio</td>\n<td>\u2014</td>\n<td>\u2014</td>\n<td><strong>Portugu\u00eas</strong><br>Prof. Bruno<br>Sala normal</td>\n<td><strong>Portugu\u00eas</strong><br>Prof. Bruno<br>Sala normal</td>\n</tr>\n<tr>\n<td style=\"text-align: right;\"><strong>4</strong></td>\n<td><strong>Educa\u00e7\u00e3o F\u00edsica</strong><br>Prof. Eduardo<br>Gin\u00e1sio<br>(duplo: P4-P5)</td>\n<td><strong>Matem\u00e1tica</strong><br>Prof. Ana<br>Sala normal</td>\n<td><strong>Matem\u00e1tica</strong><br>Prof. Ana<br>Sala normal</td>\n<td>\u2014</td>\n<td>\u2014</td>\n</tr>\n<tr>\n<td style=\"text-align: right;\"><strong>5</strong></td>\n<td>\u21b3 continua\u00e7\u00e3o do bloco duplo</td>\n<td><strong>Hist\u00f3ria</strong><br>Prof. Diana<br>Sala normal</td>\n<td><strong>Portugu\u00eas</strong><br>Prof. Bruno<br>Sala normal</td>\n<td><strong>Matem\u00e1tica</strong><br>Prof. Ana<br>Sala normal</td>\n<td><strong>Ci\u00eancias</strong><br>Prof. Carla<br>Laborat\u00f3rio</td>\n</tr>\n</tbody>\n</table></span>"
           }
         }
       ],
