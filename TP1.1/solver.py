@@ -1,21 +1,58 @@
-from read_data import *
+"""Gera horários escolares com o solver de restrições CP-SAT do OR-Tools.
+
+O modelo cria uma variável booleana para cada colocação possível de uma sessão:
+turma, disciplina, professor, dia, período de início e recurso de sala. O valor
+1 significa que essa colocação foi escolhida. As funções auxiliares adicionam
+as restrições que tornam a solução válida.
+
+Este modelo procura uma solução viável; 
+
+ainda não define uma função objetivo para minimizar os buracos dos professores.
+"""
+
+from collections import defaultdict
+from typing import Any, Dict, List
+
 from ortools.sat.python import cp_model
 
+from read_data import carregar_dados, construir_sessoes, salas_compativeis
 
-# modelo para criar variavel sessao x[(sessao, dia, inicio)]
-def gerar_horarios():
-    model = cp_model.CpModel()
-    sessoes = construir_sessoes(dados["turmas"], dados["disciplinas"])
+DIAS = ("Seg", "Ter", "Qua", "Qui", "Sex")
+"""Dias letivos aceites pelo modelo, na ordem usada para ordenar a saída."""
 
-    # 1. Cada sessão é agendada uma vez
-    model.AddExactlyOne(variaveis_da_sessao)
 
-    #2. subreposicoes de horario de turma e horario professor
+def _criar_variaveis(model, dados, sessoes):
+    """Cria as colocações possíveis e prepara capacidades e indisponibilidades.
 
-    # 3. No máximo uma aula da mesma disciplina por dia , exceto duplos
-    model.Add(sum(variaveis_da_disciplina_nesse_dia) <= 1)
+    Uma sessão dupla só pode começar até ao período 4 para caber no dia de
+    cinco períodos. 
+    Colocações que coincidam com a indisponibilidade do professor são omitidas, 
+    assim como recursos de sala incompatíveis.
 
-    #4. Disponibilidade dos professores
+    Args:
+        model: Modelo CP-SAT ao qual as variáveis booleanas serão adicionadas.
+        dados: Dicionário com salas, disciplinas e exceções de disponibilidade.
+        sessoes: Sessões letivas produzidas por ``construir_sessoes``.
+
+    Returns:
+        Tuplo com as variáveis indexadas por (sessão, dia, início, recurso),
+        capacidades de cada recurso de sala e nomes usados na apresentação.
+    """
+    variaveis = {}
+    capacidades = defaultdict(int)
+    nomes_sala = {}
+
+    # Transformação dos registos de salas em recursos do modelo:
+    # - salas normais usam a chave comum "normal", somando a capacidade;
+    # - salas especiais usam o próprio nome, mantendo capacidades separadas.
+    for sala in dados["salas"]:
+        recurso = "normal" if sala["tipo"] == "normal" else sala["sala"]
+        capacidades[recurso] += sala["quantidade"]
+        # Guarda um nome legível para converter depois a chave do modelo na saída.
+        nomes_sala[recurso] = sala["sala"] if recurso != "normal" else "Sala normal"
+
+    # Transforma cada linha CSV numa chave (professor, dia, período).
+    # O set permite testar pertença diretamente ao criar horários candidatos.
     indisponiveis = {
         (item["professor"], item["dia"], item["periodo"])
         for item in dados["disponibilidade_excecoes"]

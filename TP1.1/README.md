@@ -7,27 +7,27 @@ Este projeto consiste em desenvolver um gerador de horário escolar em Marimo, r
 ### Estrutura e execução em Marimo
 - [x] Criar/editar o notebook principal em Marimo para o problema de horário escolar
 - [ ] Garantir que o projeto corre corretamente em Marimo e não apenas como script Python normal
-- [ ] Confirmar que os ficheiros CSV são lidos a partir da pasta `dados/` e `dados_v2/`
-- [ ] Organizar o código em células Marimo com lógica separada por responsabilidade
+- [x] Confirmar que os ficheiros CSV são lidos a partir da pasta escolhida: `dados/` ou `dados_v2/`
+- [x] Organizar o código em células Marimo com lógica separada por responsabilidade
 - [x] Incluir uma forma simples de executar o notebook localmente
 
 ### Leitura e modelação dos dados
 - [x] Ler `turmas.csv`, `disciplinas.csv`, `salas.csv` e `disponibilidade_excecoes.csv`
 - [x] Validar que os dados estão no formato correto
 - [x] Representar turmas, disciplinas, professores, salas e indisponibilidades em listas/dicionários
-- [ ] Tratar corretamente disciplinas com `duplo_periodo=sim`
-- [ ] Tratar corretamente disciplinas com `sala_especial`
+- [x] Tratar disciplinas com `duplo_periodo=sim` como sessões consecutivas de dois períodos
+- [x] Restringir disciplinas com `sala_especial` à sala especial indicada
 
 ### Geração do horário
-- [ ] Implementar a geração de um horário inicial válido
-- [ ] Garantir que uma turma não tem duas aulas ao mesmo tempo
-- [ ] Garantir que cada disciplina cumpre a carga semanal correta
-- [ ] Garantir que não há mais do que uma aula da mesma disciplina por dia, por turma, salvo duplos
-- [ ] Garantir que disciplinas de duplo período só aparecem em blocos consecutivos
-- [ ] Garantir que um professor não dá duas aulas em simultâneo
-- [ ] Garantir que um professor só ministra aulas quando está disponível
-- [ ] Garantir que cada aula usa uma sala válida
-- [ ] Garantir que o número de aulas por tipo de sala não excede a capacidade disponível
+- [x] Implementar a geração de um horário inicial válido
+- [x] Garantir que uma turma não tem duas aulas ao mesmo tempo
+- [x] Garantir que cada disciplina cumpre a carga semanal correta
+- [x] Garantir que não há mais do que uma aula da mesma disciplina por dia, por turma
+- [x] Garantir que disciplinas de duplo período só aparecem em blocos consecutivos
+- [x] Garantir que um professor não dá duas aulas em simultâneo
+- [x] Garantir que um professor só ministra aulas quando está disponível
+- [x] Garantir que cada aula usa uma sala válida
+- [x] Garantir que o número de aulas por tipo de sala não excede a capacidade disponível
 
 ### Optimização
 - [ ] Definir uma função objetivo para minimizar buracos no horário dos professores
@@ -50,8 +50,8 @@ Este projeto consiste em desenvolver um gerador de horário escolar em Marimo, r
 - [ ] Confirmar que não existem valores hardcoded no código
 
 ### Apresentação e entrega
-- [ ] Produzir o relatório/visualização no notebook Marimo
-- [ ] Mostrar o horário final de forma clara (tabelas, texto ou UI)
+- [x] Produzir a visualização do horário no notebook Marimo
+- [x] Mostrar o horário final de forma clara, numa grelha semanal por turma
 - [ ] Documentar o processo de geração e as decisões tomadas
 - [ ] Verificar que o notebook pode ser aberto e executado em Marimo sem erros
 - [ ] Preparar a versão final para entrega
@@ -75,4 +75,9 @@ O notebook principal chama-se `horario_escolar.py`.
 
 ## Estado atual
 
-Ainda falta realizar a implementação completa do problema e validar o fluxo em Marimo.
+O notebook permite escolher entre `dados/` e `dados_v2/`, carregar e validar os CSVs,
+gerar sessões com as restrições implementadas no CP-SAT e apresentar o horário numa
+grelha semanal por turma. A execução completa em Marimo ainda precisa de ser confirmada
+num ambiente onde OR-Tools e Pandas consigam importar sem bloqueios de DLL. A otimização
+dos buracos, a construção incremental, os testes independentes e a preparação da entrega
+continuam por fazer.

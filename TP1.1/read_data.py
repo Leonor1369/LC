@@ -1,5 +1,7 @@
 from csv import DictReader
+from pathlib import Path
 from typing import List, Dict, Any
+
 
 def _ler_csv(caminho: str, colunas_obrigatorias: set[str]) -> List[Dict[str, str]]:
     with open(caminho, newline="", encoding="utf8") as ficheiro:
@@ -11,12 +13,14 @@ def _ler_csv(caminho: str, colunas_obrigatorias: set[str]) -> List[Dict[str, str
         return list(reader)
 
 
-def ler_turmas(caminho: str = "dados/turmas.csv") -> List[str]:
+def ler_turmas(pasta_dados: str = "dados") -> List[str]:
+    caminho = str(Path(pasta_dados) / "turmas.csv")
     linhas = _ler_csv(caminho, {"turma"})
     return [(linha["turma"] or "").strip() for linha in linhas]
 
 
-def ler_salas(caminho: str = "dados/salas.csv") -> List[Dict[str, Any]]:
+def ler_salas(pasta_dados: str = "dados") -> List[Dict[str, Any]]:
+    caminho = str(Path(pasta_dados) / "salas.csv")
     linhas = _ler_csv(caminho, {"sala", "tipo", "quantidade"})
     return [{
         "sala": (linha["sala"] or "").strip(),
@@ -25,7 +29,8 @@ def ler_salas(caminho: str = "dados/salas.csv") -> List[Dict[str, Any]]:
     } for linha in linhas]
 
 
-def ler_disciplinas(caminho: str = "dados/disciplinas.csv") -> List[Dict[str, Any]]:
+def ler_disciplinas(pasta_dados: str = "dados") -> List[Dict[str, Any]]:
+    caminho = str(Path(pasta_dados) / "disciplinas.csv")
     linhas = _ler_csv(caminho, {
         "disciplina", "professor", "carga_semanal", "duplo_periodo", "sala_especial"
     })
@@ -46,7 +51,8 @@ def ler_disciplinas(caminho: str = "dados/disciplinas.csv") -> List[Dict[str, An
     return disciplinas
 
 
-def ler_dispo_exc(caminho: str = "dados/disponibilidade_excecoes.csv") -> List[Dict[str, Any]]:
+def ler_dispo_exc(pasta_dados: str = "dados") -> List[Dict[str, Any]]:
+    caminho = str(Path(pasta_dados) / "disponibilidade_excecoes.csv")
     linhas = _ler_csv(caminho, {"professor", "dia", "periodo"})
     return [{
         "professor": (linha["professor"] or "").strip(),
@@ -143,12 +149,13 @@ def salas_compativeis(
     return [sala for sala in salas if sala["tipo"] == "normal"]
 
 
-def carregar_dados():
+def carregar_dados(pasta_dados: str = "dados") -> Dict[str, Any]:
+    """Carrega e valida os quatro CSVs da pasta indicada."""
     dados = {
-        "turmas": ler_turmas(),
-        "salas": ler_salas(),
-        "disciplinas": ler_disciplinas(),
-        "disponibilidade_excecoes": ler_dispo_exc(),
+        "turmas": ler_turmas(pasta_dados),
+        "salas": ler_salas(pasta_dados),
+        "disciplinas": ler_disciplinas(pasta_dados),
+        "disponibilidade_excecoes": ler_dispo_exc(pasta_dados),
     }
     validar_dados(dados)
     return dados
