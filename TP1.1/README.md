@@ -7,7 +7,7 @@ Este projeto consiste em desenvolver um gerador de horário escolar em Marimo, r
 ### Estrutura e execução em Marimo
 - [x] Criar/editar o notebook principal em Marimo para o problema de horário escolar
 - [ ] Garantir que o projeto corre corretamente em Marimo e não apenas como script Python normal
-- [x] Confirmar que os ficheiros CSV são lidos a partir da pasta escolhida: `dados/` ou `dados_v2/`
+- [x] Ler os CSVs a partir da pasta indicada em `PASTA_DADOS` (`dados/` ou `dados_v2/`)
 - [x] Organizar o código em células Marimo com lógica separada por responsabilidade
 - [x] Incluir uma forma simples de executar o notebook localmente
 
@@ -35,7 +35,7 @@ Este projeto consiste em desenvolver um gerador de horário escolar em Marimo, r
 - [ ] Documentar as decisões de modelação e otimização no notebook
 
 ### Construção incremental
-- [ ] Gerar um horário válido `H0` com os dados iniciais
+- [x] Implementar a geração de `H0` com os dados iniciais (`dados/`)
 - [ ] Gerar um novo horário válido `H1` com os dados alterados em `dados_v2/`
 - [ ] Implementar uma abordagem incremental, reutilizando informação de `H0`
 - [ ] Garantir que `H1` respeita as mesmas restrições do problema
@@ -51,7 +51,7 @@ Este projeto consiste em desenvolver um gerador de horário escolar em Marimo, r
 
 ### Apresentação e entrega
 - [x] Produzir a visualização do horário no notebook Marimo
-- [x] Mostrar o horário final de forma clara, numa grelha semanal por turma
+- [x] Mostrar o horário por turma e por professor em tabelas semanais
 - [ ] Documentar o processo de geração e as decisões tomadas
 - [ ] Verificar que o notebook pode ser aberto e executado em Marimo sem erros
 - [ ] Preparar a versão final para entrega
@@ -70,14 +70,17 @@ O notebook principal chama-se `horario_escolar.py`.
 ## Observações
 
 - O código deve ler os dados dos ficheiros CSV e não usar dicionários ou listas fixas no próprio notebook.
-- A solução deve funcionar para alterações ligeiras de recursos, como as que aparecem em `dados_v2/`.
-- O tempo de execução e o número de mudanças entre `H0` e `H1` devem ser apresentados como parte da análise.
+- Para usar os dados alternativos, alterar `PASTA_DADOS = "dados"` para `PASTA_DADOS = "dados_v2"` na célula de carregamento.
+- O notebook regista o tempo de execução de H0, mas ainda não compara H0 e H1.
 
 ## Estado atual
 
-O notebook permite escolher entre `dados/` e `dados_v2/`, carregar e validar os CSVs,
-gerar sessões com as restrições implementadas no CP-SAT e apresentar o horário numa
-grelha semanal por turma. A execução completa em Marimo ainda precisa de ser confirmada
-num ambiente onde OR-Tools e Pandas consigam importar sem bloqueios de DLL. A otimização
-dos buracos, a construção incremental, os testes independentes e a preparação da entrega
-continuam por fazer.
+O notebook lê e valida os CSVs da pasta indicada em `PASTA_DADOS`, constrói o modelo
+CP-SAT com as restrições R1–R7, resolve H0, atribui salas concretas e apresenta o horário
+por turma e por professor. A implementação está no notebook, mas a execução completa
+continua por confirmar no ambiente Marimo devido ao erro de importação de OR-Tools/Pandas
+com bloqueio de DLL reportado anteriormente.
+
+Ainda faltam a validação automática e independente das restrições R1–R8, testes para cada
+restrição e com dados alternativos, a otimização O1 (buracos dos professores), a construção
+incremental R9 (gerar e comparar H0/H1), documentar essa avaliação e preparar a entrega.
