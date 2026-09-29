@@ -5,7 +5,7 @@
 
 import marimo
 
-__generated_with = "0.24.2"
+__generated_with = "0.25.0"
 app = marimo.App(width="medium")
 
 
@@ -107,9 +107,13 @@ def _():
         """Verifica dimensão, domínio, grupos sem repetições e pistas preservadas."""
         raise NotImplementedError("Implementar validação da solução")
 
-    return box, cube, path, gerar_pistas_aleatorias, criar_grupos_sudoku, SudokuCSP, validar_solucao
+    return
+
+
+@app.cell
+def _():
+    return
 
 
 if __name__ == "__main__":
     app.run()
-
