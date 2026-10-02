@@ -6,7 +6,7 @@ Este projeto consiste em desenvolver um gerador de horário escolar em Marimo, r
 
 ### Estrutura e execução em Marimo
 - [x] Criar/editar o notebook principal em Marimo para o problema de horário escolar
-- [ ] Confirmar a execução completa em Marimo no ambiente de entrega
+- [ ] Confirmar a execução completa em Marimo no ambiente de entrega e guardar os resultados
 - [x] Ler os CSVs a partir da pasta indicada em `PASTA_DADOS` (`dados/` ou `dados_v2/`)
 - [x] Organizar o código em células Marimo com lógica separada por responsabilidade
 - [x] Incluir uma forma simples de executar o notebook localmente
@@ -40,18 +40,23 @@ Este projeto consiste em desenvolver um gerador de horário escolar em Marimo, r
 - [x] Implementar uma abordagem incremental que usa `H0` como pistas e objetivo de estabilidade
 - [x] Construir `H1` com as mesmas restrições R1–R7
 - [x] Maximizar o número de sessões que mantêm turma, disciplina, dia e início de `H0`
-- [x] Medir e mostrar tempos e sessões alteradas para solução do zero e incremental
-- [ ] Executar e registar evidência de que o incremental é mais rápido ou mais estável
+- [x] Mostrar tempos, sessões alteradas e validação de H1 do zero e incremental
+- [x] Mostrar numa tabela as sessões de H1 incremental que mudaram, com horário/sala antes e depois
+- [ ] Executar o fluxo e registar os valores observados para demonstrar se o incremental é mais rápido e/ou muda menos sessões
+- [ ] Incluir a sala no objetivo de estabilidade; atualmente só se maximiza a manutenção do dia e tempo de início, e as salas são atribuídas depois
+- [ ] Suportar e testar indisponibilidade temporária de uma sala; o formato atual dos CSV não representa indisponibilidades de salas
+- [ ] Evitar afirmar que o incremental é sempre mais rápido: `AddHint` e a função objetivo de estabilidade não garantem menor tempo de execução
 
 ### Validação e testes
 - [x] Criar validação automática e independente das restrições R1 a R8
-- [ ] Testar automaticamente pelo menos um caso de cada restrição (atualmente há testes de R1, R2, R5 e R6)
-- [ ] Verificar o comportamento com dados diferentes do conjunto fornecido
+- [x] Incluir sabotagens para testar R1–R7 e um conjunto de dados inválido para R8
+- [ ] Executar e confirmar que cada sabotagem é detetada pela restrição esperada
 - [x] Ler os dados de entrada dos CSVs em vez de os codificar no modelo
 
 ### Apresentação e entrega
 - [x] Produzir a visualização do horário no notebook Marimo
 - [x] Mostrar o horário por turma e por professor em tabelas semanais
+- [x] Mostrar o horário H1 incremental e a tabela de sessões alteradas (antes/depois)
 - [x] Documentar no notebook as decisões de modelação, restrições e objetivo
 - [ ] Verificar que o notebook pode ser aberto e executado em Marimo sem erros
 - [ ] Preparar a versão final para entrega
@@ -71,13 +76,43 @@ O notebook principal chama-se `horario_escolar.py`.
 
 - O código deve ler os dados dos ficheiros CSV e não usar dicionários ou listas fixas no próprio notebook.
 - A pasta é selecionada pela constante `PASTA_DADOS`: usar `"dados"` para H0 e `"dados_v2"` para H1; ainda não há seletor interativo.
-- O notebook apresenta uma tabela de comparação H1 do zero versus incremental, com estado, tempo, alterações, buracos e erros.
-- O fluxo está implementado no notebook, mas as métricas comparativas ainda precisam de ser executadas e registadas como evidência.
+- O notebook compara H1 do zero e incremental (estado, tempo, sessões alteradas, buracos e erros), mostra o horário H1 incremental e detalha cada sessão alterada com antes/depois.
+- A tabela de alterações considera uma sessão alterada se mudar o dia, os períodos ou a sala. Sessões iguais são emparelhadas primeiro; blocos duplos aparecem numa única linha.
+- O modelo incremental não minimiza mudanças de sala: a sala concreta é atribuída depois da resolução. O critério de estabilidade atual considera apenas turma, disciplina, dia e início.
+- O enunciado pede eficiência e evidência comparativa. A execução tem de confirmar os valores concretos; hints não garantem que a execução incremental seja sempre mais rápida.
+- O esquema atual não representa salas temporariamente indisponíveis, pelo que esse tipo de alteração ainda não é tratado.
 
 ## Estado atual
 
 O notebook inclui leitura e validação dos CSVs, modelo CP-SAT com R1–R7, objetivo O1,
-geração de H0 e H1, atribuição de salas, validação independente R1–R8, apresentação dos
-horários e comparação entre H1 do zero e incremental. Ainda faltam executar o fluxo completo
-no ambiente final, completar testes deliberados para R3, R4, R7 e R8, testar um conjunto de
-dados adicional, registar evidência dos resultados incrementais e preparar a entrega final.
+geração e apresentação de H0 e H1, atribuição de salas, validação independente R1–R8,
+sabotagens de teste para R1–R7, teste de dados inválidos para R8 e comparação incremental.
+
+### O que já está implementado
+- leitura dos CSVs sem dados em hardcode;
+- validação dos dados de entrada;
+- modelação de aulas e blocos duplos;
+- restrições R1–R7 e verificação independente R1–R8;
+- minimização de buracos (O1);
+- geração de H0 e H1;
+- comparação entre H1 do zero e H1 incremental;
+- tabela de mudanças de horário/sala entre H0 e H1.
+
+### O que ainda falta para cumprir o enunciado de forma completa
+- executar o fluxo completo com os dados reais e registar os valores concretos de tempo, sessões alteradas e buracos;
+- confirmar formalmente que cada sabotagem dispara a restrição esperada (R1–R7);
+- executar o notebook com outro conjunto de dados, por exemplo `dados_extra/`, e documentar o resultado;
+- verificar que o notebook abre e corre sem erros em Marimo no ambiente de entrega;
+- exportar/rever a versão PDF do relatório;
+- preparar a versão final para entrega definitiva.
+
+### O que ainda falta para reforçar a rigorosidade do modelo
+- incluir a sala na estabilidade incremental: o critério atual considera principalmente turma, disciplina, dia e início, mas a sala é atribuída depois da resolução;
+- suportar indisponibilidade temporária de salas, porque o formato atual dos CSVs representa apenas excepções de disponibilidade de professores;
+- evitar afirmar que o método incremental é sempre mais rápido: `AddHint` e o objectivo de estabilidade não garantem menor tempo de execução em todos os casos;
+- separar mais claramente no documento o que é restrição obrigatória (R1–R8), o que é objectivo de otimização (O1) e o que é pós-processamento de atribuição de salas.
+
+### Observação importante sobre a modelação
+O enunciado exige um horário válido para R1–R8 e um objetivo de otimização para O1. O código actual resolve a maior parte destas condições no modelo CP-SAT e faz a atribuição concreta das salas depois da resolução. Isto é válido para a prática, mas, do ponto de vista formal, a atribuição de sala concreta ainda não é parte do SAT, e por isso deve ser apresentada como etapa de pós-processamento, não como restrição principal do modelo.
+
+
