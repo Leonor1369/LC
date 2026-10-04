@@ -18,29 +18,19 @@ def _():
     import random
     from ortools.sat.python import cp_model
 
+    # Bibliotecas usadas:
+    #   mo       -> o Marimo; serve para escrever texto, sliders e botões.
+    #   random   -> sorteios (para escolher as pistas ao acaso).
+    #   cp_model -> o solver CP-SAT do OR-Tools, que resolve o puzzle.
     return cp_model, mo, random
 
 
 @app.cell
 def _(mo):
     mo.md(r"""
-    # Trabalho Prático: Sudoku Genérico como CSP
+    # Sudoku com restrições (CP-SAT)
 
-    Este notebook constrói um gerador/resolvedor de Sudoku $n^2 \times n^2$
-    (com $n$ parametrizável) usando uma única abstração: **um grupo de
-    células com a restrição "todos diferentes"**, algumas delas possivelmente
-    já fixas a um valor.
-
-    ### Correspondência com os requisitos do enunciado
-
-    | Requisito | Nome neste notebook |
-    |---|---|
-    | R1 – grupo genérico | classe `box` (métodos `add` e `matriz`) |
-    | R2 – bloco $n \times n$ | classe `cube(n, i, j)` |
-    | R3 – troço reto | classe `path(n, inicio, fim)` |
-    | R4 – pistas aleatórias | função `pistas_aleatorias(n, k)` |
-    | R5 – modelo e resolução | classe `SudokuCSP` (métodos `adicionar` e `resolver`) |
-    | R6 – Sudoku completo | funções `grupos_sudoku(n)` e `gerar_e_resolver(n, k)` |
+    **Autores:** Diana Mota e Leonor Sousa
     """)
     return
 
@@ -48,39 +38,109 @@ def _(mo):
 @app.cell
 def _(mo):
     mo.md(r"""
-    ## Decisões de implementação
+    ## Visão geral do problema
 
-    **Técnica de resolução: CP-SAT (OR-Tools).** O Sudoku é naturalmente um
-    CSP com variáveis inteiras em $[1, n^2]$ e restrições "todos diferentes".
-    O CP-SAT tem a restrição `AllDifferent` nativa, por isso cada grupo
-    (`box`) traduz-se diretamente numa única restrição, sem termos de
-    codificar à mão cláusulas proposicionais. Internamente o CP-SAT
-    transforma o problema em SAT e usa técnicas de aprendizagem de cláusulas,
-    o que o torna rápido mesmo para grelhas grandes. Uma codificação em SAT
-    puro (uma variável booleana por célula e valor) também funcionaria, mas
-    precisaria de $O(n^6)$ cláusulas "no máximo um" escritas à mão.
+    Este notebook resolve um Sudoku genérico usando um modelo de
+    restrições. A ideia é simples: cada célula é uma variável, e cada
+    conjunto que tem de conter valores distintos é uma restrição.
 
-    **Estrutura de dados do grupo: dicionário** `(linha, coluna) → valor ou None`.
-    Permite testar rapidamente se uma célula pertence ao grupo e guarda só
-    as células que interessam (um grupo tem no máximo $n^2$ células, muito
-    menos do que as $n^4$ da grelha).
+    Em vez de tratar linhas, colunas e blocos como casos diferentes, a
+    solução usa uma abstração comum: a classe `box`. Um `box` representa
+    qualquer grupo de células em que todos os valores têm de ser
+    distintos. A partir desta ideia, construímos as linhas, as colunas e
+    os blocos como casos particulares desse mesmo conceito.
 
-    **Pistas aleatórias.** As pistas são, elas próprias, um `box`, e o modelo
-    trata todos os grupos da mesma forma. Por isso o grupo das pistas também
-    fica sujeito a "todos diferentes". Para isso nunca tornar o puzzle
-    impossível por si só, os valores das pistas são escolhidos
-    aleatoriamente **sem repetição**. Consequência: $k \le n^2$ (um grupo
-    "todos diferentes" nunca pode ter mais de $n^2$ células com valores
-    distintos em $[1, n^2]$).
+    **Porquê CP-SAT?** Porque o problema é um CSP clássico e OR-Tools
+    já tem a restrição `AllDifferent` pronta. Isso faz com que o modelo
+    seja curto, claro e muito mais fácil de manter do que escrever uma
+    codificação manual em SAT.
 
-    **Puzzle sem solução.** Mesmo assim, pistas aleatórias podem gerar um
-    puzzle impossível. Nesse caso `gerar_e_resolver` sorteia novas pistas e
-    tenta outra vez (até 20 tentativas) e só depois reporta insucesso.
-    Escolhemos isto porque o objetivo é mostrar um Sudoku resolvido, e
-    sortear de novo é barato.
+    **Como guardo cada grupo.** Cada grupo usa um dicionário em que a
+    chave é `(linha, coluna)` e o valor é o número fixo da célula, ou
+    `None` se a célula estiver livre. Isso permite validar rapidamente se
+    uma célula pertence ao grupo e também guardar apenas o que é
+    relevante.
 
-    **Apresentação.** Uma tabela HTML com as fronteiras dos blocos
-    destacadas e as pistas a vermelho e a negrito.
+    **Pistas aleatórias.** As pistas são elas próprias um `box`, e por isso
+    também têm de respeitar a regra "todos diferentes". Para evitar
+    conflitos imediatos, os valores são escolhidos sem repetição, o que
+    implica que o número de pistas, `k`, tem de satisfazer $k \le n^2$.
+
+    **Se o puzzle não tiver solução.** Mesmo com valores distintos e bem
+    escolhidos, às vezes a combinação de pistas pode tornar o problema
+    impossível. Nesse caso, o notebook tenta gerar novas pistas várias
+    vezes e só depois informa que não houve solução. A intenção é manter
+    a experiência simples e garantir que o utilizador vê a resolução do
+    Sudoku em vez de um erro de modelação.
+
+    **Como é apresentada a solução.** O resultado aparece numa tabela HTML,
+    com as fronteiras dos blocos mais fortes e as pistas destacadas a
+    vermelho e a negrito.
+    """)
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""
+    ## Vocabulário e convenções
+
+    | Símbolo | Significado | Exemplo |
+    |---|---|---|
+    | `n` | parâmetro do Sudoku: cada bloco é $n \times n$ | `n = 3` |
+    | `N` | tamanho da grelha e maior valor possível, $N = n^2$ | `N = 9` |
+    | `i` | número da **linha**, de `0` a `N-1` (começa em 0!) | `i = 0` é a 1.ª linha |
+    | `j` | número da **coluna**, de `0` a `N-1` | `j = 8` é a 9.ª coluna |
+    | `val` | valor de uma célula, de `1` a `N` | `val = 5` |
+    | pista | célula cujo valor já vem fixo | `(0, 0) = 5` |
+
+    Para $n = 3$ temos o Sudoku clássico $9 \times 9$; para $n = 2$ temos
+    um mini-Sudoku $4 \times 4$ (valores de 1 a 4), muito útil para testar.
+    """)
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""
+    ## Restrições do modelo
+
+    O modelo tem **uma variável por célula**, $x_{i,j} \in [1, n^2]$, e
+    quatro famílias de restrições. As três primeiras vêm de `grupos_sudoku(n)`
+    e a quarta das pistas.
+
+    | # | Restrição | Grupos | Classe | Quantos |
+    |---|---|---|---|---|
+    | C1 | Linhas: $x_{i,0}, \ldots, x_{i,N-1}$ todas diferentes | uma por linha | `path` | $n^2$ |
+    | C2 | Colunas: $x_{0,j}, \ldots, x_{N-1,j}$ todas diferentes | uma por coluna | `path` | $n^2$ |
+    | C3 | Blocos: as $n \times n$ células de cada bloco todas diferentes | um por bloco | `cube` | $n^2$ |
+    | C4 | Pistas: as células sorteadas ficam fixas ao valor sorteado (e são todas diferentes entre si) | um grupo | `box` | $\ge 1$ |
+
+    Para uma restrição ser fixa a um valor, o modelo acrescenta
+    $x_{i,j} = v$. Quando o puzzle é impossível, é porque C1–C3 e C4 não
+    podem ser satisfeitas **ao mesmo tempo**.
+    """)
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""
+    ## Passo 1: a classe `box`
+
+    O `box` é o bloco de construção de tudo o resto: **um grupo de
+    células que têm de ser todas diferentes**. Não sabe se é uma linha,
+    uma coluna ou um bloco; só guarda células.
+
+    | Método | O que faz |
+    |---|---|
+    | `add(i, j, val)` | acrescenta a célula `(i, j)`, opcionalmente fixa a `val` |
+    | `matriz()` | devolve o grupo como grelha $N \times N$ (0 = célula livre) |
+    | `len(b)` | número de células do grupo |
+
+    O `add` **valida** o que recebe: coordenadas fora da grelha ou valores
+    fora de $[1, N]$ dão `ValueError`. Assim apanhamos erros logo à
+    entrada, em vez de descobrirmos um resultado estranho mais à frente.
     """)
     return
 
@@ -136,7 +196,27 @@ class box:
         return len(self.celulas)
 
     def __repr__(self):
+        """Texto que aparece ao imprimir o objeto, ex.: `box(9 células)`."""
         return f"{type(self).__name__}({len(self)} células)"
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""
+    ## Passo 2: `cube` e `path`, dois tipos de `box`
+
+    Ambos **herdam** de `box`: só mudam a forma de escolher as células.
+
+    - **`cube(n, i, j)`**: o bloco $n \times n$ número `(i, j)`. Atenção que
+      aqui `i, j` são índices de **bloco** (de `0` a `n-1`), não de
+      célula. O canto superior esquerdo do bloco é a célula `(i*n, j*n)`.
+      Ex.: com $n = 3$, o bloco `(1, 2)` começa na célula `(3, 6)`.
+    - **`path(n, inicio, fim)`**: uma linha reta de células, horizontal
+      ou vertical, de `inicio` até `fim` (inclusive). Serve para linhas
+      e colunas inteiras.
+      Ex.: `path(3, (0, 0), (0, 8))` é a linha 0 inteira.
+    """)
+    return
 
 
 @app.cell
@@ -178,11 +258,34 @@ def _():
             elif j2 < j1:
                 dj = -1
 
+            # Quantos passos dar para ir de `inicio` a `fim`
             passos = max(abs(i2 - i1), abs(j2 - j1))
             for k in range(passos + 1):
                 self.add(i1 + k * di, j1 + k * dj)
 
     return cube, path
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""
+    ## Passo 3: pistas aleatórias
+
+    `pistas_aleatorias(n, k)` devolve um `box` com `k` células sorteadas,
+    cada uma com um valor sorteado. Os dois sorteios usam
+    `random.sample`, que escolhe **sem repetição**, e por isso:
+
+    - não saem duas pistas na mesma célula;
+    - não saem dois valores iguais (o grupo das pistas também é "todos
+      diferentes"), o que obriga a $k \le N$.
+
+    Se não indicarmos `k`, usa-se `k = n`.
+
+    > Nada garante que as pistas sorteadas tenham solução. Isso é tratado
+    >  em `gerar_e_resolver`, e demonstrado na secção
+    > "Puzzles sem solução".
+    """)
+    return
 
 
 @app.cell
@@ -200,16 +303,47 @@ def _(random):
         if not (0 <= k <= N):
             raise ValueError(f"k tem de estar em [0, {N}]")
 
+        # Lista de todas as células possíveis: (0,0), (0,1), ..., (N-1,N-1)
         todas = [(i, j) for i in range(N) for j in range(N)]
-        posicoes = random.sample(todas, k)
-        valores = random.sample(range(1, N + 1), k)
+        posicoes = random.sample(todas, k) # k posiçoes diferentes
+        valores = random.sample(range(1, N + 1), k) # k valores diferentes
 
         pistas = box(n)
+        # zip junta duas listas as duas linhas, par a par: (posiçao 1, valor 1), (posiçao 2, valor 2), ...
         for (i, j), val in zip(posicoes, valores):
             pistas.add(i, j, val)
         return pistas
 
     return (pistas_aleatorias,)
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""
+    ## Passo 4: o modelo `SudokuCSP`
+
+    Esta é a ponte para o solver. O que acontece:
+
+    1. **Construção.** Para cada célula cria-se uma variável inteira
+       `x[i][j]` com valores possíveis de 1 a `N`. Ainda não há valores,
+       só "incógnitas".
+    2. **`adicionar(*grupos)`.** Para cada grupo impõe-se
+       `add_all_different` (todas as variáveis diferentes) e, para as
+       células com valor fixo, `x[i][j] == val`. O método não quer saber
+       se o grupo é uma linha, um bloco ou as pistas, e é aqui que a
+       abstração `box` compensa.
+    3. **`resolver()`.** Entrega o modelo ao CP-SAT. Devolve a grelha
+       preenchida, ou `None` se não houver solução.
+
+    Quando devolve `None`, o motivo fica em `modelo.estado`:
+
+    | Estado | Significado |
+    |---|---|
+    | `OPTIMAL` / `FEASIBLE` | encontrou solução |
+    | `INFEASIBLE` | provou que **não existe** solução |
+    | `UNKNOWN` | acabou o tempo (`tempo_max`) sem concluir |
+    """)
+    return
 
 
 @app.cell
@@ -223,7 +357,8 @@ def _(cp_model):
         def __init__(self, n):
             self.n = n
             self.N = n * n
-            self.modelo = cp_model.CpModel()
+            self.modelo = cp_model.CpModel() # o "caderno" onde se escreve as regras
+            # x[i][j] é a variável da célula (i, j): uma linha de listas
             self.x = []
             for i in range(self.N):
                 linha = []
@@ -237,10 +372,14 @@ def _(cp_model):
             e, para cada um, impõe "todos diferentes" e fixa as células
             com valor. Não distingue a origem dos grupos."""
             for g in grupos:
+                # Evita misturar umm grupo de uma gralha 4x4 com uma 9x9
                 if g.n != self.n:
                     raise ValueError("O grupo foi criado para outro n")
+                # A svariaveis das celulas do grupo
                 variaveis = [self.x[i][j] for (i, j) in g.celulas]
+                # .. tem de ser todas diferentes
                 self.modelo.add_all_different(variaveis)
+                # celulas com valor fixo (as pistas): x[i][j] == val
                 for (i, j), val in g.celulas.items():
                     if val is not None:
                         self.modelo.add(self.x[i][j] == val)
@@ -250,11 +389,12 @@ def _(cp_model):
             não houver solução. O motivo fica em self.estado
             ("INFEASIBLE" = sem solução, "UNKNOWN" = acabou o tempo)."""
             solver = cp_model.CpSolver()
-            solver.parameters.max_time_in_seconds = tempo_max
+            solver.parameters.max_time_in_seconds = tempo_max # limite de tempo
             resultado = solver.solve(self.modelo)
             self.estado = solver.status_name(resultado)
 
             if resultado == cp_model.OPTIMAL or resultado == cp_model.FEASIBLE:
+                #lê o valor que o solver escolheu para a variavel
                 grelha = []
                 for i in range(self.N):
                     grelha.append([solver.value(self.x[i][j]) for j in range(self.N)])
@@ -265,21 +405,88 @@ def _(cp_model):
 
 
 @app.cell
-def _(cube, path):
-    def grupos_sudoku(n):
-        """Todas as linhas, colunas e blocos de um Sudoku N x N (R6)."""
+def _(mo):
+    mo.md(r"""
+    ## Passo 5: as restrições C1, C2 e C3
+
+    Cada função devolve uma **lista de grupos**:
+
+    | Função | Devolve | Como |
+    |---|---|---|
+    | `restricao_linhas(n)` | $N$ grupos (C1) | um `path` horizontal por linha |
+    | `restricao_colunas(n)` | $N$ grupos (C2) | um `path` vertical por coluna |
+    | `restricao_blocos(n)` | $n^2$ grupos (C3) | um `cube` por bloco |
+
+    Depois `grupos_sudoku(n)` junta as três listas numa só (em Python,
+    `lista1 + lista2` concatena). As pistas (C4) ficam de fora porque
+    mudam a cada puzzle, enquanto linhas, colunas e blocos são sempre iguais.
+    """)
+    return
+
+
+@app.cell
+def _(path):
+    def restricao_linhas(n):
+        """C1: uma linha = um `path` horizontal, todas diferentes."""
         N = n * n
-        grupos = []
-        for i in range(N):
-            grupos.append(path(n, (i, 0), (i, N - 1)))  # linha i
-        for j in range(N):
-            grupos.append(path(n, (0, j), (N - 1, j)))  # coluna j
-        for i in range(n):
-            for j in range(n):
-                grupos.append(cube(n, i, j))  # bloco (i, j)
-        return grupos
+        return [path(n, (i, 0), (i, N - 1)) for i in range(N)]
+
+    return (restricao_linhas,)
+
+
+@app.cell
+def _(path):
+    def restricao_colunas(n):
+        """C2: uma coluna = um `path` vertical, todas diferentes."""
+        N = n * n
+        return [path(n, (0, j), (N - 1, j)) for j in range(N)]
+
+    return (restricao_colunas,)
+
+
+@app.cell
+def _(cube):
+    def restricao_blocos(n):
+        """C3: um bloco n x n = um `cube`, todas diferentes."""
+        return [cube(n, i, j) for i in range(n) for j in range(n)]
+
+    return (restricao_blocos,)
+
+
+@app.cell
+def _(restricao_blocos, restricao_colunas, restricao_linhas):
+    def grupos_sudoku(n):
+        """Junta C1 + C2 + C3 (as pistas, C4, vêm à parte) (R6)."""
+        return (
+            restricao_linhas(n)
+            + restricao_colunas(n)
+            + restricao_blocos(n)
+        )
 
     return (grupos_sudoku,)
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""
+    ## Passo 6: gerar e resolver
+
+    `gerar_e_resolver` junta tudo o que construímos. Em cada tentativa:
+
+    1. sorteia pistas;
+    2. cria um modelo novo e adiciona linhas + colunas + blocos
+       (+ grupos `extra`, se existirem, como diagonais) + pistas;
+    3. tenta resolver. Se houver solução, termina; senão sorteia outras
+       pistas.
+
+    Devolve **três coisas**: as pistas usadas, a solução (ou `None`) e o
+    número de tentativas feitas. Em Python, uma função pode devolver um
+    tuplo e quem a chama separa-o: `pistas, sol, t = gerar_e_resolver(3)`.
+
+    Porque é preciso repetir? Porque pistas todas diferentes **não
+    garantem** que o puzzle tenha solução (ver o caso B mais abaixo).
+    """)
+    return
 
 
 @app.cell
@@ -297,7 +504,7 @@ def _(SudokuCSP, grupos_sudoku, pistas_aleatorias):
             extra = []
         for t in range(1, tentativas + 1):
             pistas = pistas_aleatorias(n, k)
-            modelo = SudokuCSP(n)
+            modelo = SudokuCSP(n) 
             modelo.adicionar(*grupos_sudoku(n))
             modelo.adicionar(*extra)
             modelo.adicionar(pistas)
@@ -307,8 +514,10 @@ def _(SudokuCSP, grupos_sudoku, pistas_aleatorias):
         return pistas, None, tentativas
 
     return (gerar_e_resolver,)
+
+
 @app.cell
-def _(SudokuCSP, box, grupos_sudoku, random):
+def _(SudokuCSP, grupos_sudoku, random):
     def pistas_por_bloco(n, por_bloco=3):
         """Devolve uma lista de `box`, um por bloco, cada um com
         `por_bloco` células fixas.
@@ -346,18 +555,23 @@ def _(SudokuCSP, box, grupos_sudoku, random):
 
     return (pistas_por_bloco,)
 
+
 @app.cell
 def _(path):
     def validar_grelha(grelha, n):
         """True se cada linha, coluna e bloco tem exatamente 1..N."""
         N = n * n
         esperado = set(range(1, N + 1))
+
         for i in range(N):
             if set(grelha[i]) != esperado:
                 return False
+
         for j in range(N):
-            if set(grelha[i][j] for i in range(N)) != esperado:
+            col = {grelha[i][j] for i in range(N)}
+            if col != esperado:
                 return False
+
         for bi in range(n):
             for bj in range(n):
                 bloco = set()
@@ -548,10 +762,82 @@ def _(
     mo.md("\n".join(_linhas))
     return
 
- 
 
 @app.cell
-def _(SudokuCSP, box, grupos_sudoku, mo, mostrar, pistas_por_bloco, validar_grelha, validar_pistas):
+def _(mo):
+    mo.md(r"""
+    ## Puzzles sem solução
+
+    `resolver()` devolve `None` e deixa o motivo em `modelo.estado`.
+    `"INFEASIBLE"` quer dizer que o puzzle é mesmo impossível, e
+    `"UNKNOWN"` que o tempo acabou antes de se saber.
+
+    Dois exemplos construídos à mão, para $n = 2$ (grelha $4 \times 4$):
+
+    - **A, valor repetido.** Duas pistas fixam `(0,0) = 1` e `(0,1) = 1`.
+      Estão na mesma linha, por isso a restrição C1 falha.
+    - **B, célula sem valor possível.** A linha 0 tem `1 2 3` e a coluna 3
+      já tem um `4` em `(1,3)`. A linha pede `(0,3) = 4`, mas a coluna
+      não deixa. As pistas são todas diferentes entre si, por isso o grupo
+      das pistas está válido, e o conflito só aparece quando se juntam
+      linhas, colunas e blocos.
+
+    O caso B mostra porque é que o sorteio sem repetição **não chega** para
+    garantir um puzzle solúvel, e porque é que `gerar_e_resolver` precisa
+    de tentar outra vez.
+    """)
+    return
+
+
+@app.cell
+def _(SudokuCSP, grupos_sudoku):
+    def _resolver_com(n, *grupos_pistas):
+        modelo = SudokuCSP(n)
+        modelo.adicionar(*grupos_sudoku(n))
+        modelo.adicionar(*grupos_pistas)
+        return modelo.resolver(), modelo.estado
+
+    def sem_solucao_valor_repetido():
+        """A: duas pistas iguais na mesma linha, em grupos separados."""
+        a = box(2); a.add(0, 0, 1)
+        b = box(2); b.add(0, 1, 1)
+        return _resolver_com(2, a, b)
+
+    def sem_solucao_celula_sem_valor():
+        """B: pistas distintas, mas (0,3) fica sem valor possível."""
+        p = box(2)
+        p.add(0, 0, 1); p.add(0, 1, 2); p.add(0, 2, 3)
+        p.add(1, 3, 4)
+        return _resolver_com(2, p)
+
+    return sem_solucao_celula_sem_valor, sem_solucao_valor_repetido
+
+
+@app.cell
+def _(mo, sem_solucao_celula_sem_valor, sem_solucao_valor_repetido):
+    _casos = [
+        ("A: duas pistas com valor 1 na linha 0", sem_solucao_valor_repetido),
+        ("B: linha 0 = 1 2 3 _ e coluna 3 já tem 4", sem_solucao_celula_sem_valor),
+    ]
+    _linhas = ["| caso | solução | estado | correto? |", "|---|---|---|---|"]
+    for _nome, _f in _casos:
+        _sol, _estado = _f()
+        _ok = _sol is None and _estado == "INFEASIBLE"
+        _linhas.append(f"| {_nome} | {_sol} | {_estado} | {'yes' if _ok else 'no'} |")
+    mo.md("\n".join(_linhas))
+    return
+
+
+@app.cell
+def _(
+    SudokuCSP,
+    grupos_sudoku,
+    mo,
+    mostrar,
+    pistas_por_bloco,
+    validar_grelha,
+    validar_pistas,
+):
     _n = 3
     _lista = pistas_por_bloco(_n, por_bloco=3)
 
