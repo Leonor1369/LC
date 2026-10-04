@@ -578,5 +578,29 @@ def _(SudokuCSP, box, grupos_sudoku, mo, mostrar, pistas_por_bloco, validar_grel
     ])
     return
 
+
+@app.cell
+def _(mo):
+    mo.md(r"""
+    ## Utilização de LLMs
+
+    Neste trabalho usámos o Claude, através de claude.ai.
+
+    O LLM ajudou-nos a estruturar o início do projeto e a perceber a
+    estrutura pedida no enunciado (a abstração `box` e as suas
+    especializações). 
+    
+    Nenhuma resposta do LLM foi aceite sem ser executada e testada.
+     ### Verificação
+
+    Todo o código gerado foi executado e verificado pelos testes automáticos
+    do notebook: cada linha, coluna e bloco contém $1 \ldots n^2$ sem
+    repetições, as pistas são respeitadas e entradas inválidas são
+    rejeitadas. Testámos também grelhas $4 \times 4$ e $9 \times 9$.
+
+    """)
+    return
 if __name__ == "__main__":
     app.run()
+    
+
