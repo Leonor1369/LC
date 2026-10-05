@@ -355,7 +355,8 @@ def _(DIAS, PERIODOS):
         for turma in turmas:
             for d in disciplinas:
                 duracao = 2 if d["duplo_periodo"] else 1
-                n_blocos = d["carga_semanal"] // duracao
+                n_blocos = d["carga_semanal"] // duracao # divisao inteira arredonda para baixo
+                # Cada bloco é uma sessão separada, mesmo que sejam da mesma disciplina.
                 for _ in range(n_blocos):
                     sessoes.append({
                         "turma": turma,
@@ -372,12 +373,12 @@ def _(DIAS, PERIODOS):
 
     def criar_variaveis(model, sessoes):
         x = {}
-        ultimo = PERIODOS[-1]
+        ultimo = PERIODOS[-1] # último tempo do dia
         for i, sessao in enumerate(sessoes):
             for dia in DIAS:
                 for inicio in PERIODOS:
                     if inicio + sessao["duracao"] - 1 <= ultimo:
-                        x[(i, dia, inicio)] = model.NewBoolVar(f"x_{i}_{dia}_{inicio}")
+                        x[(i, dia, inicio)] = model.NewBoolVar(f"x_{i}_{dia}_{inicio}") # 
         return x
 
     def mapa_ocupacao(x, sessoes):
@@ -385,7 +386,7 @@ def _(DIAS, PERIODOS):
         for (i, dia, inicio), var in x.items():
             fim = inicio + sessoes[i]["duracao"]
             for p in range(inicio, fim):
-                ocupacao[(dia, p)].append((i, var))
+                ocupacao[(dia, p)].append((i, var)) 
         return ocupacao
 
     return construir_sessoes, criar_variaveis, mapa_ocupacao, tipo_de_sala
@@ -611,6 +612,7 @@ def _(mo):
     O solver minimiza a soma dos `buraco`. Há limite de tempo: a
     solução pode não ser óptima, mas continua a ser válida (SAT).
  
+    `adicionar_buracos` acrescenta as variáveis e restrições ao modelo.
     `contar_buracos` refaz a conta no horário já extraído — é EVAL
     do objectivo, independente do modelo.
     """)
@@ -631,12 +633,16 @@ def _(DIAS, PERIODOS):
                         var for (i, var) in ocupacao[(dia, t)]
                         if sessoes[i]["professor"] == prof
                     ]
+                    # Se não houver nenhuma sessão do professor nesse tempo, a soma é 0.
                     model.Add(ocupado[t] == sum(do_prof))
                 for t in PERIODOS:
                     buraco = model.NewBoolVar(f"buraco_{prof}_{dia}_{t}")
                     for s in PERIODOS:
                         for u in PERIODOS:
                             if s < t < u:
+                                # A soma das aulas antes e depois menos a aula no tempo t menos 1
+                                # deve ser menor ou igual a buraco[t]. Se houver aula antes e depois
+                                # e não houver aula no tempo t, então buraco[t] deve ser 1.
                                 model.Add(
                                     buraco >= ocupado[s] + ocupado[u] - ocupado[t] - 1
                                 )
@@ -644,6 +650,7 @@ def _(DIAS, PERIODOS):
         model.Minimize(sum(buracos))
 
     def contar_buracos(aulas, dados):
+        """Conta buracos no horário final, sem usar o solver."""
         total = 0
         professores = {d["professor"] for d in dados["disciplinas"]}
         for prof in professores:
@@ -652,6 +659,10 @@ def _(DIAS, PERIODOS):
                     a["periodo"] for a in aulas
                     if a["professor"] == prof and a["dia"] == dia
                 }
+                # Um buraco é um tempo livre entre dois tempos ocupados. 
+                # Se os tempos ocupados forem {1, 3, 4}, então há um buraco no tempo 2. 
+                # A fórmula (max - min + 1) - len(tempos) conta quantos tempos 
+                # estão entre o primeiro e o último ocupado, menos os que estão realmente ocupados.
                 if tempos:
                     total += (max(tempos) - min(tempos) + 1) - len(tempos)
         return total
@@ -679,6 +690,10 @@ def _(mo):
     > Como não é o solver a decidir, **não há garantia de que a
     > escolha seja ótima** (nem sequer de minimizar mudanças de sala).
     > Por isso a `verificar` confirma depois a sala de cada aula.
+    >
+    > Na prática, `atribuir_salas` agrupa as aulas por sessão e escolhe
+    > uma sala compatível que esteja livre em todos os tempos da sessão.
+    > Se houver um H0 de referência, tenta primeiro manter a sala antiga.
     """)
     return
 
@@ -714,6 +729,7 @@ def _(cp_model, tipo_de_sala):
 @app.cell
 def _():
     def salas_compativeis(aula, salas):
+        """Lista de salas compatíveis com a aula ."""
         if aula["sala_especial"]:
             return [
                 s for s in salas
@@ -730,9 +746,11 @@ def _():
         """
         ocupadas = set()
         por_sessao = {}
+        # Agrupa as aulas por sessão, para poder escolher a mesma sala para todas.
         for a in aulas:
             por_sessao.setdefault(a["sessao"], []).append(a)
 
+        # Função auxiliar: devolve a chave de uma sessão para procurar a sala antiga.
         def chave_da(lista):
             p = min(lista, key=lambda a: a["periodo"])
             return (p["turma"], p["disciplina"], p["dia"], p["periodo"])
@@ -789,10 +807,13 @@ def _():
 
 @app.function
 def slots(aulas, com_salas=False):
-    """Conjunto (turma, disciplina, dia, início) das sessões.
- 
-    Com `com_sala=True` acrescenta a sala, para detetar também
-    mudanças de sala.
+    """Devolve as sessões como tuplos, para comparar horários.
+
+    Cada sessão aparece uma vez, mesmo que ocupe dois tempos. Por
+    omissão, o tuplo contém turma, disciplina, dia e tempo inicial.
+    Com `com_salas=True`, inclui também a sala.
+
+    Usada para identificar sessões mantidas ou alteradas entre horários.
     """
     primeiras = {}
     for a in aulas:
@@ -812,21 +833,28 @@ def slots(aulas, com_salas=False):
 
 @app.function
 def alteracoes(aulas_antes, aulas_depois):
-    """Conta sessões do `depois` que não existiam iguais no `antes`.
- 
-    - tempo: mudou dia/tempo inicial (ou é sessão nova);
-    - tempo_ou_sala: mudou dia/tempo inicial **ou** a sala.
+    """Conta sessões novas ou alteradas entre dois horários.
+
+    Compara as sessões do horário final com as do inicial. `tempo`
+    conta mudanças de dia ou início; `tempo_ou_sala` também conta
+    mudanças de sala. Uma sessão removida do horário final não conta.
     """
     return {
         "tempo": len(slots(aulas_depois) - slots(aulas_antes)),
         "tempo_ou_sala": len(
-            slots(aulas_depois, com_sala=True) - slots(aulas_antes, com_sala=True)
+            slots(aulas_depois, com_salas=True) - slots(aulas_antes, com_salas=True)
         ),
     }
 
 @app.function
 def comparar_sessoes(aulas_antes, aulas_depois, dias_semana):
-    """Emparelha sessões iguais e devolve as alterações de tempo ou sala."""
+    """Compara sessões por turma e disciplina e descreve as diferenças.
+
+    Primeiro elimina as sessões idênticas. Depois emparelha as restantes
+    pela ordem do dia, tempo e sala, devolvendo uma linha por diferença;
+    sessões que só existem num dos horários são indicadas como ausentes.
+    `dias_semana` define a ordem dos dias na comparação.
+    """
     dias = {dia: indice for indice, dia in enumerate(dias_semana)}
 
     def agrupar(aulas):
@@ -885,11 +913,11 @@ def comparar_sessoes(aulas_antes, aulas_depois, dias_semana):
 
 @app.function
 def preferir_horario_anterior(model, x, sessoes, aulas_antigas):
-    """OBJETIVO de estabilidade (R9) + pistas (hints) a partir do H0.
- 
-    Maximiza o número de sessões que repetem
-    (turma, disciplina, dia, início) do H0. A sala NÃO entra aqui:
-    é decidida depois, em `atribuir_salas`.
+    """Define o objetivo incremental e dá pistas de colocação ao solver.
+
+    Maximiza as sessões que repetem (turma, disciplina, dia e início)
+    do H0 e usa essas posições como hints. A sala não entra nesta
+    comparação: é atribuída depois por `atribuir_salas`.
     """
     antigos = slots(aulas_antigas)
     mantidas = []
