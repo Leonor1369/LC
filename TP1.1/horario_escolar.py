@@ -804,135 +804,6 @@ def _():
         return aulas
     return atribuir_salas, salas_compativeis
 
-
-@app.function
-def slots(aulas, com_salas=False):
-    """Devolve as sessões como tuplos, para comparar horários.
-
-    Cada sessão aparece uma vez, mesmo que ocupe dois tempos. Por
-    omissão, o tuplo contém turma, disciplina, dia e tempo inicial.
-    Com `com_salas=True`, inclui também a sala.
-
-    Usada para identificar sessões mantidas ou alteradas entre horários.
-    """
-    primeiras = {}
-    for a in aulas:
-        s = a["sessao"]
-        if s not in primeiras or a["periodo"] < primeiras[s]["periodo"]:
-            primeiras[s] = a
-    if com_salas:
-        return {
-            (a["turma"], a["disciplina"], a["dia"], a["periodo"], a["sala"])
-            for a in primeiras.values()
-        }
-    return {
-        (a["turma"], a["disciplina"], a["dia"], a["periodo"])
-        for a in primeiras.values()
-    }
-
-
-@app.function
-def alteracoes(aulas_antes, aulas_depois):
-    """Conta sessões novas ou alteradas entre dois horários.
-
-    Compara as sessões do horário final com as do inicial. `tempo`
-    conta mudanças de dia ou início; `tempo_ou_sala` também conta
-    mudanças de sala. Uma sessão removida do horário final não conta.
-    """
-    return {
-        "tempo": len(slots(aulas_depois) - slots(aulas_antes)),
-        "tempo_ou_sala": len(
-            slots(aulas_depois, com_salas=True) - slots(aulas_antes, com_salas=True)
-        ),
-    }
-
-@app.function
-def comparar_sessoes(aulas_antes, aulas_depois, dias_semana):
-    """Compara sessões por turma e disciplina e descreve as diferenças.
-
-    Primeiro elimina as sessões idênticas. Depois emparelha as restantes
-    pela ordem do dia, tempo e sala, devolvendo uma linha por diferença;
-    sessões que só existem num dos horários são indicadas como ausentes.
-    `dias_semana` define a ordem dos dias na comparação.
-    """
-    dias = {dia: indice for indice, dia in enumerate(dias_semana)}
-
-    def agrupar(aulas):
-        por_sessao = {}
-        for aula in aulas:
-            por_sessao.setdefault(aula["sessao"], []).append(aula)
-
-        grupos = {}
-        for lista in por_sessao.values():
-            primeira = lista[0]
-            periodos = tuple(sorted(a["periodo"] for a in lista))
-            grupos.setdefault((primeira["turma"], primeira["disciplina"]), []).append({
-                "dia": primeira["dia"],
-                "periodos": periodos,
-                "sala": primeira["sala"],
-            })
-        for sessoes in grupos.values():
-            sessoes.sort(key=lambda s: (dias[s["dia"]], s["periodos"][0], s["sala"] or ""))
-        return grupos
-
-    antes = agrupar(aulas_antes)
-    depois = agrupar(aulas_depois)
-    mudancas = []
-    for turma, disciplina in sorted(set(antes) | set(depois)):
-        antigas = antes.get((turma, disciplina), []).copy()
-        novas = depois.get((turma, disciplina), []).copy()
-        mantidas = []
-        for antiga in antigas:
-            if antiga in novas:
-                novas.remove(antiga)
-            else:
-                mantidas.append(antiga)
-
-        antigas = mantidas
-        quantidade = max(len(antigas), len(novas))
-        for indice in range(quantidade):
-            antiga = antigas[indice] if indice < len(antigas) else None
-            nova = novas[indice] if indice < len(novas) else None
-
-            def descrever(sessao):
-                if sessao is None:
-                    return "Sem sessão"
-                tempos = str(sessao["periodos"][0])
-                if len(sessao["periodos"]) > 1:
-                    tempos += f"-{sessao['periodos'][-1]}"
-                return f"{sessao['dia']} {tempos} | {sessao['sala']}"
-
-            mudancas.append({
-                "Turma": turma,
-                "Disciplina": disciplina,
-                "Antes (dia/tempo | sala)": descrever(antiga),
-                "Depois (dia/tempo | sala)": descrever(nova),
-            })
-    return mudancas
-
-
-@app.function
-def preferir_horario_anterior(model, x, sessoes, aulas_antigas):
-    """Define o objetivo incremental e dá pistas de colocação ao solver.
-
-    Maximiza as sessões que repetem (turma, disciplina, dia e início)
-    do H0 e usa essas posições como hints. A sala não entra nesta
-    comparação: é atribuída depois por `atribuir_salas`.
-    """
-    antigos = slots(aulas_antigas)
-    mantidas = []
-    usados = set()
-    for (i, dia, inicio), var in x.items():
-        s = sessoes[i]
-        chave = (s["turma"], s["disciplina"], dia, inicio)
-        if chave in antigos:
-            mantidas.append(var)
-            if chave not in usados:
-                model.AddHint(var, 1)
-                usados.add(chave)
-    model.Maximize(sum(mantidas))
-
-
 @app.cell
 def _(adicionar_buracos, atribuir_salas, construir_modelo, resolver):
     def gerar_horario(dados, limite_segundos=30, aulas_referencia=None):
@@ -1209,7 +1080,7 @@ def _(aulas_h0, dados, deepcopy, mo, verificar):
         linhas.append({
             "Caso": f"{restricao_teste} estragada",
             "Erros no código testado": encontrados,
-            "Esperado": "> 0",
+            "Esperado": ">0",
         })
 
     dados_maus = deepcopy(dados)
@@ -1218,7 +1089,7 @@ def _(aulas_h0, dados, deepcopy, mo, verificar):
     linhas.append({
         "Caso": "R8 dados inválidos (turmas repetidas)",
         "Erros no código testado": erros_r8,
-        "Esperado": "> 0",
+        "Esperado": ">0",
     })
 
     mo.vstack([
@@ -1256,6 +1127,135 @@ def _(mo):
     no H0.
     """)
     return
+
+
+@app.function
+def slots(aulas, com_salas=False):
+    """Devolve as sessões como tuplos, para comparar horários.
+
+    Cada sessão aparece uma vez, mesmo que ocupe dois tempos. Por
+    omissão, o tuplo contém turma, disciplina, dia e tempo inicial.
+    Com `com_salas=True`, inclui também a sala.
+
+    Usada para identificar sessões mantidas ou alteradas entre horários.
+    """
+    primeiras = {}
+    for a in aulas:
+        s = a["sessao"]
+        if s not in primeiras or a["periodo"] < primeiras[s]["periodo"]:
+            primeiras[s] = a
+    if com_salas:
+        return {
+            (a["turma"], a["disciplina"], a["dia"], a["periodo"], a["sala"])
+            for a in primeiras.values()
+        }
+    return {
+        (a["turma"], a["disciplina"], a["dia"], a["periodo"])
+        for a in primeiras.values()
+    }
+
+
+@app.function
+def alteracoes(aulas_antes, aulas_depois):
+    """Conta sessões novas ou alteradas entre dois horários.
+
+    Compara as sessões do horário final com as do inicial. `tempo`
+    conta mudanças de dia ou início; `tempo_ou_sala` também conta
+    mudanças de sala. Uma sessão removida do horário final não conta.
+    """
+    return {
+        "tempo": len(slots(aulas_depois) - slots(aulas_antes)),
+        "tempo_ou_sala": len(
+            slots(aulas_depois, com_salas=True) - slots(aulas_antes, com_salas=True)
+        ),
+    }
+
+
+@app.function
+def comparar_sessoes(aulas_antes, aulas_depois, dias_semana):
+    """Compara sessões por turma e disciplina e descreve as diferenças.
+
+    Primeiro elimina as sessões idênticas. Depois emparelha as restantes
+    pela ordem do dia, tempo e sala, devolvendo uma linha por diferença;
+    sessões que só existem num dos horários são indicadas como ausentes.
+    `dias_semana` define a ordem dos dias na comparação.
+    """
+    dias = {dia: indice for indice, dia in enumerate(dias_semana)}
+
+    def agrupar(aulas):
+        por_sessao = {}
+        for aula in aulas:
+            por_sessao.setdefault(aula["sessao"], []).append(aula)
+
+        grupos = {}
+        for lista in por_sessao.values():
+            primeira = lista[0]
+            periodos = tuple(sorted(a["periodo"] for a in lista))
+            grupos.setdefault((primeira["turma"], primeira["disciplina"]), []).append({
+                "dia": primeira["dia"],
+                "periodos": periodos,
+                "sala": primeira["sala"],
+            })
+        for sessoes in grupos.values():
+            sessoes.sort(key=lambda s: (dias[s["dia"]], s["periodos"][0], s["sala"] or ""))
+        return grupos
+
+    antes = agrupar(aulas_antes)
+    depois = agrupar(aulas_depois)
+    mudancas = []
+    for turma, disciplina in sorted(set(antes) | set(depois)):
+        antigas = antes.get((turma, disciplina), []).copy()
+        novas = depois.get((turma, disciplina), []).copy()
+        mantidas = []
+        for antiga in antigas:
+            if antiga in novas:
+                novas.remove(antiga)
+            else:
+                mantidas.append(antiga)
+
+        antigas = mantidas
+        quantidade = max(len(antigas), len(novas))
+        for indice in range(quantidade):
+            antiga = antigas[indice] if indice < len(antigas) else None
+            nova = novas[indice] if indice < len(novas) else None
+
+            def descrever(sessao):
+                if sessao is None:
+                    return "Sem sessão"
+                tempos = str(sessao["periodos"][0])
+                if len(sessao["periodos"]) > 1:
+                    tempos += f"-{sessao['periodos'][-1]}"
+                return f"{sessao['dia']} {tempos} | {sessao['sala']}"
+
+            mudancas.append({
+                "Turma": turma,
+                "Disciplina": disciplina,
+                "Antes (dia/tempo | sala)": descrever(antiga),
+                "Depois (dia/tempo | sala)": descrever(nova),
+            })
+    return mudancas
+
+
+@app.function
+def preferir_horario_anterior(model, x, sessoes, aulas_antigas):
+    """Define o objetivo incremental e dá pistas de colocação ao solver.
+
+    Maximiza as sessões que repetem (turma, disciplina, dia e início)
+    do H0 e usa essas posições como hints. A sala não entra nesta
+    comparação: é atribuída depois por `atribuir_salas`.
+    """
+    antigos = slots(aulas_antigas)
+    mantidas = []
+    usados = set()
+    for (i, dia, inicio), var in x.items():
+        s = sessoes[i]
+        chave = (s["turma"], s["disciplina"], dia, inicio)
+        if chave in antigos:
+            mantidas.append(var)
+            if chave not in usados:
+                model.AddHint(var, 1)
+                usados.add(chave)
+    model.Maximize(sum(mantidas))
 
 
 @app.cell
