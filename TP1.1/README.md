@@ -6,8 +6,8 @@ Este projeto consiste em desenvolver um gerador de horário escolar em Marimo, r
 
 ### Estrutura e execução em Marimo
 - [x] Criar/editar o notebook principal em Marimo para o problema de horário escolar
-- [ ] Garantir que o projeto corre corretamente em Marimo e não apenas como script Python normal
-- [x] Confirmar que os ficheiros CSV são lidos a partir da pasta escolhida: `dados/` ou `dados_v2/`
+- [ ] Confirmar a execução completa em Marimo no ambiente de entrega e guardar os resultados
+- [x] Ler os CSVs a partir da pasta indicada em `PASTA_DADOS` (`dados/` ou `dados_v2/`)
 - [x] Organizar o código em células Marimo com lógica separada por responsabilidade
 - [x] Incluir uma forma simples de executar o notebook localmente
 
@@ -30,29 +30,34 @@ Este projeto consiste em desenvolver um gerador de horário escolar em Marimo, r
 - [x] Garantir que o número de aulas por tipo de sala não excede a capacidade disponível
 
 ### Optimização
-- [ ] Definir uma função objetivo para minimizar buracos no horário dos professores
-- [ ] Ajustar a solução para melhorar a qualidade do horário, mesmo que não seja ótima
-- [ ] Documentar as decisões de modelação e otimização no notebook
+- [x] Definir uma função objetivo para minimizar buracos no horário dos professores
+- [x] Limitar o tempo de resolução; aceitar solução viável mesmo que não seja ótima
+- [x] Documentar no notebook a modelação e a função objetivo
 
 ### Construção incremental
-- [ ] Gerar um horário válido `H0` com os dados iniciais
-- [ ] Gerar um novo horário válido `H1` com os dados alterados em `dados_v2/`
-- [ ] Implementar uma abordagem incremental, reutilizando informação de `H0`
-- [ ] Garantir que `H1` respeita as mesmas restrições do problema
-- [ ] Minimizar o número de aulas alteradas entre `H0` e `H1`
-- [ ] Medir e comparar tempo de execução entre solução do zero e solução incremental
-- [ ] Mostrar evidência de que a abordagem incremental é melhor ou mais estável
+- [x] Implementar a geração de `H0` com os dados iniciais (`dados/`)
+- [x] Implementar a geração de `H1` com os dados de `dados_v2/`
+- [x] Implementar uma abordagem incremental que usa `H0` como pistas e objetivo de estabilidade
+- [x] Construir `H1` com as mesmas restrições R1–R7
+- [x] Maximizar o número de sessões que mantêm turma, disciplina, dia e início de `H0`
+- [x] Mostrar tempos, sessões alteradas e validação de H1 do zero e incremental
+- [x] Mostrar numa tabela as sessões de H1 incremental que mudaram, com horário/sala antes e depois
+- [ ] Executar o fluxo e registar os valores observados para demonstrar se o incremental é mais rápido e/ou muda menos sessões
+- [ ] Incluir a sala no objetivo de estabilidade; atualmente só se maximiza a manutenção do dia e tempo de início, e as salas são atribuídas depois
+- [ ] Suportar e testar indisponibilidade temporária de uma sala; o formato atual dos CSV não representa indisponibilidades de salas
+- [ ] Evitar afirmar que o incremental é sempre mais rápido: `AddHint` e a função objetivo de estabilidade não garantem menor tempo de execução
 
 ### Validação e testes
-- [ ] Criar validação automática das restrições R1 a R8
-- [ ] Testar pelo menos um caso de cada restrição
-- [ ] Verificar o comportamento com dados diferentes do conjunto fornecido
-- [ ] Confirmar que não existem valores hardcoded no código
+- [x] Criar validação automática e independente das restrições R1 a R8
+- [x] Incluir sabotagens para testar R1–R7 e um conjunto de dados inválido para R8
+- [ ] Executar e confirmar que cada sabotagem é detetada pela restrição esperada
+- [x] Ler os dados de entrada dos CSVs em vez de os codificar no modelo
 
 ### Apresentação e entrega
 - [x] Produzir a visualização do horário no notebook Marimo
-- [x] Mostrar o horário final de forma clara, numa grelha semanal por turma
-- [ ] Documentar o processo de geração e as decisões tomadas
+- [x] Mostrar o horário por turma e por professor em tabelas semanais
+- [x] Mostrar o horário H1 incremental e a tabela de sessões alteradas (antes/depois)
+- [x] Documentar no notebook as decisões de modelação, restrições e objetivo
 - [ ] Verificar que o notebook pode ser aberto e executado em Marimo sem erros
 - [ ] Preparar a versão final para entrega
 
@@ -70,14 +75,11 @@ O notebook principal chama-se `horario_escolar.py`.
 ## Observações
 
 - O código deve ler os dados dos ficheiros CSV e não usar dicionários ou listas fixas no próprio notebook.
-- A solução deve funcionar para alterações ligeiras de recursos, como as que aparecem em `dados_v2/`.
-- O tempo de execução e o número de mudanças entre `H0` e `H1` devem ser apresentados como parte da análise.
+- A pasta é selecionada pela constante `PASTA_DADOS`: usar `"dados"` para H0 e `"dados_v2"` para H1; ainda não há seletor interativo.
+- O notebook compara H1 do zero e incremental (estado, tempo, sessões alteradas, buracos e erros), mostra o horário H1 incremental e detalha cada sessão alterada com antes/depois.
+- A tabela de alterações considera uma sessão alterada se mudar o dia, os períodos ou a sala. Sessões iguais são emparelhadas primeiro; blocos duplos aparecem numa única linha.
+- O modelo incremental não minimiza mudanças de sala: a sala concreta é atribuída depois da resolução. O critério de estabilidade atual considera apenas turma, disciplina, dia e início.
+- O enunciado pede eficiência e evidência comparativa. A execução tem de confirmar os valores concretos; hints não garantem que a execução incremental seja sempre mais rápida.
+- O esquema atual não representa salas temporariamente indisponíveis, pelo que esse tipo de alteração ainda não é tratado.
 
-## Estado atual
 
-O notebook permite escolher entre `dados/` e `dados_v2/`, carregar e validar os CSVs,
-gerar sessões com as restrições implementadas no CP-SAT e apresentar o horário numa
-grelha semanal por turma. A execução completa em Marimo ainda precisa de ser confirmada
-num ambiente onde OR-Tools e Pandas consigam importar sem bloqueios de DLL. A otimização
-dos buracos, a construção incremental, os testes independentes e a preparação da entrega
-continuam por fazer.
