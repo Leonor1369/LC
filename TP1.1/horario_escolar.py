@@ -14,6 +14,12 @@ app = marimo.App(width="full")
 
 @app.cell
 def _():
+    # Bibliotecas principais do notebook:
+    # - marimo: interface e visualização do documento interativo;
+    # - os: acesso às pastas de dados e caminhos dos CSV;
+    # - deepcopy: cópia segura dos dados para testes de sabotagem;
+    # - DictReader: leitura dos ficheiros CSV em formato tabular;
+    # - cp_model: solver CP-SAT do OR-Tools para o problema de horário.
     import marimo as mo
     import os
     from copy import deepcopy
@@ -24,7 +30,7 @@ def _():
 
 
 @app.cell
-def _(mo):
+def _(mo):                                                                                                                             
     mo.md(r"""
     # Gerador de horário escolar
 
@@ -56,6 +62,28 @@ def _(mo):
     """)
     return
 
+@app.cell
+def _(mo):
+    mo.md(r"""
+    ## Mapa do documento: o que é o quê
+ 
+    Este trabalho mistura três tipos de coisas que convém não confundir.
+    O documento está organizado para as manter separadas.
+ 
+    | Tipo | O que é | Onde está | Quem o garante |
+    |---|---|---|---|
+    | **Restrição obrigatória** (R1–R7) | Regras que **qualquer** horário tem de cumprir. Se uma falhar, o horário é inválido. | Secção 2 (Parte A) | O solver (modelo CP-SAT); confirmado por `verificar` |
+    | **Restrição sobre os dados** (R8) | Os dados vêm de CSV e são consistentes. | Secção 1 | `validar_dados` (antes do solver); confirmado por `verificar` |
+    | **Objetivo de otimização** (O1) | Entre os horários válidos, preferir o que tem menos buracos. **Nunca** torna um horário inválido. | Secção 3 (Parte B) | O solver, com limite de tempo (pode não ser ótimo) |
+    | **Objetivo de estabilidade** (R9) | No H1, preferir manter as sessões onde o H0 as tinha. | Secção 6 | O solver, com `AddHint` |
+    | **Pós-processamento** (nomes das salas) | Depois de resolver, escolher *qual* sala concreta cada aula usa. | Secção 4 (Parte C) | Uma heurística gulosa **fora** do solver; confirmada por `verificar` |
+ 
+    **Nota sobre a R7**, que está dividida em duas: a *capacidade por tipo
+    de sala* (nunca há mais aulas do que salas desse tipo) é restrição
+    do modelo. A *sala concreta* ("Sala Normal 3") é pós-processamento.
+    """)
+    return
+
 
 @app.cell
 def _(mo):
@@ -67,6 +95,7 @@ def _(mo):
     e salas vêm dos ficheiros.
     """)
     return
+
 
 
 @app.cell
@@ -95,7 +124,9 @@ def _(DictReader):
     def ler_csv(caminho, colunas_obrigatorias):
         """Lê um CSV e recusa-o se faltar alguma coluna do enunciado."""
         with open(caminho, newline="", encoding="utf8") as ficheiro:
+            # O `DictReader` devolve uma lista de dicionários, um por linha.
             reader = DictReader(ficheiro)
+            # Verifica se todas as colunas obrigatórias estão presentes.
             em_falta = colunas_obrigatorias - set(reader.fieldnames or [])
             if em_falta:
                 raise ValueError(f"{caminho}: faltam as colunas {sorted(em_falta)}")
@@ -120,6 +151,7 @@ def _(mo):
 @app.cell
 def _(DIAS, PERIODOS):
     def validar_dados(dados):
+        # Valida consistência dos dados lidos do CSV. Lança `ValueError`
         turmas = dados["turmas"]
         salas = dados["salas"]
         disciplinas = dados["disciplinas"]
@@ -137,7 +169,8 @@ def _(DIAS, PERIODOS):
             if s["quantidade"] <= 0:
                 raise ValueError(f"Quantidade de sala inválida: {s}")
 
-        especiais = {s["sala"] for s in salas if s["tipo"] == "especial"}
+        especiais = {s["sala"] for s in salas if s["tipo"] == "especial"} # 
+  
         professores = {d["professor"] for d in disciplinas}
         for d in disciplinas:
             if not d["disciplina"] or not d["professor"]:
@@ -151,6 +184,7 @@ def _(DIAS, PERIODOS):
             if not d["sala_especial"] and not any(s["tipo"] == "normal" for s in salas):
                 raise ValueError(f"{d['disciplina']} precisa de sala normal e não há.")
 
+        # Valida consistência das excepções de disponibilidade do professor.
         vistos = set()
         for e in dados["disponibilidade_excecoes"]:
             chave = (e["professor"], e["dia"], e["periodo"])
@@ -276,28 +310,34 @@ def _(dados, mo):
 @app.cell
 def _(mo):
     mo.md(r"""
-    ## 2. Modelo: sessões e matriz de alocação
-
+    ## 2. Parte A — Restrições obrigatórias (R1–R7)
+ 
+    > Tudo o que está nesta parte é **obrigatório**: um horário que
+    > viole qualquer uma destas regras é inválido, por mais bonito que
+    > pareça. Ainda não há nenhum objetivo a otimizar.
+ 
+    ### Modelo: sessões e matriz de alocação
+ 
     Na ficha 3 a variável era $x_{p,s,d,h}$ (professor × sala × dia ×
     hora). Aqui o compromisso atómico é uma **sessão**:
-
+ 
     - uma aula de 1 tempo, ou
     - um bloco de 2 tempos seguidos (disciplinas com `duplo_periodo=sim`).
-
+ 
     Exemplo: Matemática, carga 4 → 4 sessões de 1 tempo **por turma**.
     Educação Física, carga 2 e duplo → 1 sessão de 2 tempos por turma.
-
+ 
     Variável booleana (matriz de alocação):
-
+ 
     $$x_{i,d,h} = 1 \iff \text{a sessão } i \text{ começa no dia } d \text{ no tempo } h.$$
-
+ 
     Só criamos a variável se o bloco cabe no dia (um duplo não pode
     começar no 5.º tempo). O mapa `ocupacao[(dia, tempo)]` lista as
     sessões que **ocupam** esse tempo — um duplo que começa em 4
     aparece em 4 e em 5. As limitações R1, R5, R6 e R7 leem este mapa.
-
+ 
     Na linguagem da aula:
-
+ 
     - **Obrigações** (animação): R2 — cada sessão acontece exactamente
       uma vez.
     - **Limitações** (segurança): R1, R3, R5, R6, R7 — «não pode».
@@ -487,13 +527,16 @@ def r6_disponibilidade(model, ocupacao, sessoes, dados):
 @app.cell
 def _(mo):
     mo.md(r"""
-    ### R7 — limitação: capacidade das salas
-
+    ### R7 — limitação: capacidade das salas (parte do modelo)
+ 
     Em cada tempo, o número de sessões de um tipo de sala não pode
     passar da quantidade desse tipo. Todas as salas `normal` somam
     para o mesmo balde; cada especial (Laboratório, Ginásio) tem o
-    seu. A sala *concreta* (Sala Normal 1, 2, …) é escolhida depois,
-    em `atribuir_salas`.
+    seu.
+ 
+    Isto é **só a capacidade por tipo**. A sala *concreta* (Sala
+    Normal 1, 2, …) **não** faz parte do modelo: é escolhida
+    depois, no pós-processamento da Parte C (`atribuir_salas`).
     """)
     return
 
@@ -548,22 +591,26 @@ def _(
 @app.cell
 def _(mo):
     mo.md(r"""
-    ## 3. Objectivo O1 — minimizar buracos
-
+    ## 3. Parte B — Objetivo de otimização O1 (minimizar buracos)
+ 
+    > Esta parte **não** acrescenta regras: acrescenta uma
+    > *preferência*. Qualquer horário da Parte A continua válido; o
+    > objetivo só serve para escolher o melhor entre eles.
+ 
     Um **buraco** é um tempo livre *no meio* do dia: há aula antes e
     depois, no mesmo professor. Não conta chegar mais tarde de
     manhã nem ir embora mais cedo.
-
+ 
     Para cada professor e dia:
-
+ 
     - `ocupado[t] = 1` se tem aula no tempo `t` (a soma das sessões;
       a R5 garante que essa soma é 0 ou 1);
     - `buraco[t] ≥ ocupado[s] + ocupado[u] − ocupado[t] − 1`
       para todos os `s < t < u`.
-
+ 
     O solver minimiza a soma dos `buraco`. Há limite de tempo: a
     solução pode não ser óptima, mas continua a ser válida (SAT).
-
+ 
     `contar_buracos` refaz a conta no horário já extraído — é EVAL
     do objectivo, independente do modelo.
     """)
@@ -615,13 +662,23 @@ def _(DIAS, PERIODOS):
 @app.cell
 def _(mo):
     mo.md(r"""
-    ## 4. Resolver, atribuir salas, mostrar
-
+    ## 4. Resolver, mostrar e Parte C — pós-processamento das salas
+ 
     `resolver` corre o CP-SAT e transforma cada sessão escolhida em
-    uma linha por tempo (um duplo vira duas aulas). O modelo só
-    garante a *capacidade por tipo*; `atribuir_salas` escolhe o nome
-    da sala (o bloco duplo fica na mesma; cada turma tenta a mesma
-    sala normal, para o horário ser mais estável).
+    uma linha por tempo (um duplo vira duas aulas). **Aqui termina o
+    que o solver decide.**
+ 
+    > **Parte C — pós-processamento (fora do solver).** O modelo só
+    > garante a *capacidade por tipo* (R7). `atribuir_salas` é uma
+    > **heurística gulosa** que, depois de o solver acabar, escolhe o
+    > nome da sala: o bloco duplo fica na mesma sala nos dois tempos;
+    > cada turma tenta a mesma sala normal, para o horário ser mais
+    > estável; e, **no H1 incremental**, se uma sessão ficou no mesmo
+    > dia e tempo que tinha no H0, tenta-se **repor a mesma sala**.
+    >
+    > Como não é o solver a decidir, **não há garantia de que a
+    > escolha seja ótima** (nem sequer de minimizar mudanças de sala).
+    > Por isso a `verificar` confirma depois a sala de cada aula.
     """)
     return
 
@@ -664,13 +721,37 @@ def _():
             ]
         return [s for s in salas if s["tipo"] == "normal"]
 
-    def atribuir_salas(aulas, dados):
+    def atribuir_salas(aulas, dados, aulas_referencia=None):
+        """PÓS-PROCESSAMENTO (fora do solver): escolhe o nome da sala.
+ 
+        Se `aulas_referencia` (o H0) for dado, uma sessão que ficou no
+        mesmo (turma, disciplina, dia, tempo inicial) tenta ficar na
+        sala que tinha. É uma heurística gulosa, sem garantia de ótimo.
+        """
         ocupadas = set()
         por_sessao = {}
         for a in aulas:
             por_sessao.setdefault(a["sessao"], []).append(a)
 
-        for aulas_da_sessao in por_sessao.values():
+        def chave_da(lista):
+            p = min(lista, key=lambda a: a["periodo"])
+            return (p["turma"], p["disciplina"], p["dia"], p["periodo"])
+ 
+        # Sala que cada sessão tinha no horário de referência
+        sala_antiga = {}
+        if aulas_referencia is not None:
+            ref = {}
+            for a in aulas_referencia:
+                ref.setdefault(a["sessao"], []).append(a)
+            for lista in ref.values():
+                primeira = min(lista, key=lambda a: a["periodo"])
+                sala_antiga[chave_da(lista)] = primeira["sala"]
+ 
+        # Primeiro as sessões que podem repor a sala antiga (ordenação
+        # estável: False vem antes de True)
+        ordem = sorted(por_sessao.values(), key=lambda lista: chave_da(lista) not in sala_antiga)
+ 
+        for aulas_da_sessao in ordem:
             primeira = aulas_da_sessao[0]
             possiveis = []
             for sala in salas_compativeis(primeira, dados["salas"]):
@@ -681,11 +762,15 @@ def _():
                         f"{sala['sala']} {n}"
                         for n in range(1, sala["quantidade"] + 1)
                     ]
-
-            posicao = dados["turmas"].index(primeira["turma"])
-            if posicao < len(possiveis):
-                possiveis.insert(0, possiveis.pop(posicao))
-
+ 
+            antiga = sala_antiga.get(chave_da(aulas_da_sessao))
+            if antiga in possiveis:
+                possiveis.insert(0, possiveis.pop(possiveis.index(antiga)))
+            else:
+                posicao = dados["turmas"].index(primeira["turma"])
+                if posicao < len(possiveis):
+                    possiveis.insert(0, possiveis.pop(posicao))
+ 
             escolhida = None
             for sala in possiveis:
                 livre = all(
@@ -699,23 +784,45 @@ def _():
                 a["sala"] = escolhida
                 ocupadas.add((escolhida, a["dia"], a["periodo"]))
         return aulas
-
     return atribuir_salas, salas_compativeis
 
 
 @app.function
-def slots(aulas):
-    """Conjunto (turma, disciplina, dia, início) das sessões."""
+def slots(aulas, com_salas=False):
+    """Conjunto (turma, disciplina, dia, início) das sessões.
+ 
+    Com `com_sala=True` acrescenta a sala, para detetar também
+    mudanças de sala.
+    """
     primeiras = {}
     for a in aulas:
         s = a["sessao"]
         if s not in primeiras or a["periodo"] < primeiras[s]["periodo"]:
             primeiras[s] = a
+    if com_salas:
+        return {
+            (a["turma"], a["disciplina"], a["dia"], a["periodo"], a["sala"])
+            for a in primeiras.values()
+        }
     return {
         (a["turma"], a["disciplina"], a["dia"], a["periodo"])
         for a in primeiras.values()
     }
 
+
+@app.function
+def alteracoes(aulas_antes, aulas_depois):
+    """Conta sessões do `depois` que não existiam iguais no `antes`.
+ 
+    - tempo: mudou dia/tempo inicial (ou é sessão nova);
+    - tempo_ou_sala: mudou dia/tempo inicial **ou** a sala.
+    """
+    return {
+        "tempo": len(slots(aulas_depois) - slots(aulas_antes)),
+        "tempo_ou_sala": len(
+            slots(aulas_depois, com_sala=True) - slots(aulas_antes, com_sala=True)
+        ),
+    }
 
 @app.function
 def comparar_sessoes(aulas_antes, aulas_depois, dias_semana):
@@ -778,7 +885,12 @@ def comparar_sessoes(aulas_antes, aulas_depois, dias_semana):
 
 @app.function
 def preferir_horario_anterior(model, x, sessoes, aulas_antigas):
-    """Objectivo de estabilidade + pistas (hints) a partir do H0."""
+    """OBJETIVO de estabilidade (R9) + pistas (hints) a partir do H0.
+ 
+    Maximiza o número de sessões que repetem
+    (turma, disciplina, dia, início) do H0. A sala NÃO entra aqui:
+    é decidida depois, em `atribuir_salas`.
+    """
     antigos = slots(aulas_antigas)
     mantidas = []
     usados = set()
@@ -797,13 +909,16 @@ def preferir_horario_anterior(model, x, sessoes, aulas_antigas):
 def _(adicionar_buracos, atribuir_salas, construir_modelo, resolver):
     def gerar_horario(dados, limite_segundos=30, aulas_referencia=None):
         """H0 (minimizar buracos) ou H1 incremental (maximizar estabilidade)."""
+        # Parte A: restrições obrigatórias (R1–R7)
         model, x, sessoes, ocupacao = construir_modelo(dados)
+        # Parte B / R9: objetivo (O1 no H0; estabilidade no H1)
         if aulas_referencia is None:
             adicionar_buracos(model, ocupacao, sessoes, dados)
         else:
             preferir_horario_anterior(model, x, sessoes, aulas_referencia)
         aulas, estado, tempo = resolver(model, x, sessoes, limite_segundos)
-        aulas = atribuir_salas(aulas, dados)
+        # Parte C: pós-processamento (nomes das salas, fora do solver)
+        aulas = atribuir_salas(aulas, dados, aulas_referencia)
         return aulas, estado, tempo, sessoes
 
     return (gerar_horario,)
@@ -876,6 +991,9 @@ def _(mo):
     para cada restrição R1–R8, a lista de erros (vazia = cumprida).
     É outro código, de propósito: se o modelo e a verificação
     concordam, há menos risco de um bug escondido nas duas.
+
+    Repara que a `verificar` confirma também a parte que **não** é do
+    solver: a sala concreta de cada aula (Parte C), dentro da R7.
     """)
     return
 
