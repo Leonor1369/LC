@@ -1357,5 +1357,25 @@ def _(mo):
     return
 
 
+@app.cell
+def _(mo):
+        mo.md(r"""
+        ## Declaração de utilização de LLMs
+
+        Neste trabalho recorremos a modelos de linguagem (LLMs), nomeadamente o
+        Claude.
+
+        - Estrutura do notebook: organização das células em secções (leitura,
+            modelo, resolução e apresentação) e documentação do código (docstrings
+            e explicações em Markdown).
+        - README: apoio na redação das instruções de instalação.
+
+        As decisões sobre a abordagem (modelo por sessões, uso do CP-SAT e do
+        módulo `csv`) foram nossas. Corremos e testámos o notebook com os dados
+        do enunciado.
+        """)
+        return
+
+
 if __name__ == "__main__":
     app.run()
