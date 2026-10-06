@@ -866,7 +866,6 @@ def _(
 
 
 @app.cell
-def _(mo):
     mo.md(r"""
     ## Utilização de LLMs
 
