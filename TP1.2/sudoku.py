@@ -876,6 +876,7 @@ def _(
     especializações). 
     
     Nenhuma resposta do LLM foi aceite sem ser executada e testada.
+    Link: https://claude.ai/share/c00ad75c-5111-48f9-9c65-902284ac7b8e
      ### Verificação
 
     Todo o código gerado foi executado e verificado pelos testes automáticos
