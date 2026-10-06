@@ -39,13 +39,14 @@ Este projeto consiste em desenvolver um gerador de horário escolar em Marimo, r
 - [x] Implementar a geração de `H1` com os dados de `dados_v2/`
 - [x] Implementar uma abordagem incremental que usa `H0` como pistas e objetivo de estabilidade
 - [x] Construir `H1` com as mesmas restrições R1–R7
-- [x] Maximizar o número de sessões que mantêm turma, disciplina, dia e início de `H0`
+- [x] Maximizar o número de sessões que mantêm turma, disciplina, dia, início e sala de `H0`
 - [x] Mostrar tempos, sessões alteradas e validação de H1 do zero e incremental
 - [x] Mostrar numa tabela as sessões de H1 incremental que mudaram, com horário/sala antes e depois
 - [ ] Executar o fluxo e registar os valores observados para demonstrar se o incremental é mais rápido e/ou muda menos sessões
-- [ ] Incluir a sala no objetivo de estabilidade; atualmente só se maximiza a manutenção do dia e tempo de início, e as salas são atribuídas depois
-- [ ] Suportar e testar indisponibilidade temporária de uma sala; o formato atual dos CSV não representa indisponibilidades de salas
-- [ ] Evitar afirmar que o incremental é sempre mais rápido: `AddHint` e a função objetivo de estabilidade não garantem menor tempo de execução
+- [x] Incluir a sala concreta no objetivo de estabilidade do H1
+- [x] Suportar indisponibilidade temporária por sala, dia e período através de `disponibilidade_salas.csv` (opcional)
+- [x] Documentar que `AddHint` não garante que o incremental seja sempre mais rápido
+- [ ] Executar o fluxo e registar os tempos e as alterações observadas
 
 ### Validação e testes
 - [x] Criar validação automática e independente das restrições R1 a R8
@@ -78,8 +79,8 @@ O notebook principal chama-se `horario_escolar.py`.
 - A pasta é selecionada pela constante `PASTA_DADOS`: usar `"dados"` para H0 e `"dados_v2"` para H1; ainda não há seletor interativo.
 - O notebook compara H1 do zero e incremental (estado, tempo, sessões alteradas, buracos e erros), mostra o horário H1 incremental e detalha cada sessão alterada com antes/depois.
 - A tabela de alterações considera uma sessão alterada se mudar o dia, os períodos ou a sala. Sessões iguais são emparelhadas primeiro; blocos duplos aparecem numa única linha.
-- O modelo incremental não minimiza mudanças de sala: a sala concreta é atribuída depois da resolução. O critério de estabilidade atual considera apenas turma, disciplina, dia e início.
+- O objetivo incremental maximiza as sessões que mantêm o horário e a sala concreta de H0.
+- `disponibilidade_salas.csv` é opcional e usa as colunas `sala`, `dia` e `periodo`; em salas com várias unidades, indicar o nome concreto, por exemplo `Sala Normal 2`.
 - O enunciado pede eficiência e evidência comparativa. A execução tem de confirmar os valores concretos; hints não garantem que a execução incremental seja sempre mais rápida.
-- O esquema atual não representa salas temporariamente indisponíveis, pelo que esse tipo de alteração ainda não é tratado.
 
 

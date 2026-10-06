@@ -1,0 +1,12 @@
+disciplina,professor,carga_semanal,duplo_periodo,sala_especial
+Português,Prof. Ana,3,nao,
+Matemática,Prof. Bruno,3,nao,
+Inglês,Prof. Carla,2,nao,
+História,Prof. Diana,2,nao,
+Geografia,Prof. Diana,1,nao,
+Ciências Naturais,Prof. Eduardo,2,sim,Laboratório
+Educação Física,Prof. Filipa,2,sim,Ginásio
+Educação Visual,Prof. Gonçalo,2,sim,Sala de Artes
+Música,Prof. Helena,2,nao,
+TIC,Prof. Igor,2,nao,Sala de Informática
+Cidadania,Prof. Joana,1,nao,
