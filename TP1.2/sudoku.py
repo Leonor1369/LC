@@ -7,19 +7,10 @@
 # ///
 # (O bloco acima diz que versão do Python e que bibliotecas o notebook precisa.)
 
-import marimo 
+import marimo
 
-__generated_with = "0.25.0"  
-app = marimo.App(width="medium")  
-
-
-# ---------------------------------------------------------------------------
-# NOTA SOBRE O MARIMO (vale para todas as células):
-#   @app.cell       -> marca a função seguinte como uma célula do notebook.
-#   def _(a, b):    -> os argumentos são os nomes que a célula usa de outras células.
-#   return (x, y)   -> os nomes que esta célula disponibiliza às outras.
-#   Nomes começados por _ (ex.: _n) são "privados": só existem dentro da célula.
-# ---------------------------------------------------------------------------
+__generated_with = "0.25.0"
+app = marimo.App(width="medium")
 
 
 @app.cell
@@ -28,18 +19,17 @@ def _():
     import random  
     from ortools.sat.python import cp_model  # cp_model -> o solver CP-SAT do OR-Tools
 
-    return cp_model, mo, random  # disponibiliza as três bibliotecas às outras células
+    return cp_model, mo, random
 
 
 @app.cell
 def _(mo):
-    
     mo.md(r"""
     # Sudoku com restrições (CP-SAT)
 
     **Autores:** Diana Mota e Leonor Sousa
     """)
-    return  # esta célula não disponibiliza nada às outras
+    return
 
 
 @app.cell
@@ -271,7 +261,7 @@ def _():
             for k in range(passos + 1):  # +1 para incluir a célula final
                 self.add(i1 + k * di, j1 + k * dj)  # célula k passos à frente do início
 
-    return cube, path  # disponibiliza as duas classes às outras células
+    return cube, path
 
 
 @app.cell
@@ -906,5 +896,5 @@ def _(mo):
     return
 
 
-if __name__ == "__main__":  
-    app.run()  
+if __name__ == "__main__":
+    app.run()
