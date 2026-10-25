@@ -33,10 +33,15 @@ essa largura e, por isso, podem sofrer overflow (aritmética módulo `2^n`).
 
 ## Lista de tarefas do enunciado
 
-Estado com base no que já está implementado em `ex3_py.py`:
+Estado com base no código atual. As caixas assinaladas indicam funcionalidades
+já codificadas em `ex3_py.py`; ainda falta validar os resultados e completar os
+itens pendentes abaixo.
 
 - [x] Modelar o SFOTS: variáveis, estado inicial, transições e estado de erro.
 - [x] Usar `k`-indução para verificar `x*y + z = a*b`, tanto com aritmética de `n` bits como numa versão alargada a `2n` bits.
 - [x] Restringir os valores iniciais a `a, b < 2^(n/2)` e verificar que o estado `ERROR` não é alcançado.
 - [x] Codificar a verificação de terminação por BMC, procurando caminhos que não chegam a `STOP` nem a `ERROR` em `4n` passos.
+- [ ] Generalizar e validar o exercício para diferentes valores de `n` (o script atual usa apenas `n = 4`).
+- [ ] Completar o notebook Marimo com a explicação de todas as partes: modelo SFOTS, transições, overflow, propriedades, `k`-indução, segurança e terminação.
+- [ ] Criar e executar testes para validar o modelo e os resultados do solver, incluindo diferentes valores de `n`.
 - [ ] Executar `ex3_py.py` e confirmar que os resultados do solver correspondem ao esperado antes de entregar.
