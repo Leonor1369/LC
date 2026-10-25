@@ -12,3 +12,31 @@ https://share.google/aimode/80OTdhEEscQJAbLsy
 
 
 Puma melhor interpretaçao do enado foi usado o claude no seguinte chat: https://claude.ai/share/c4fb403c-1ec4-4e9b-a545-3804fbf2d7da
+
+## Referência rápida: operadores Z3
+
+Os operadores abaixo são usados em `ex3_py.py` para modelar o programa com
+vetores de bits. Um `BitVec` tem largura fixa: operações aritméticas mantêm
+essa largura e, por isso, podem sofrer overflow (aritmética módulo `2^n`).
+
+| Operador | O que faz neste exercício |
+| --- | --- |
+| `BitVec(nome, n)` | Declara uma variável simbólica com `n` bits. |
+| `ULT(a, b)` | Compara `a < b` como números **sem sinal**. |
+| `Extract(high, low, x)` | Extrai de `x` os bits do índice `high` ao `low`, inclusive. |
+| `BitVecVal(valor, n)` | Cria uma constante com o valor e a largura de `n` bits. |
+| `And(c1, ...)` | Exige que todas as restrições fornecidas sejam verdadeiras. |
+| `LShR(x, k)` | Desloca `x` `k` bits à direita, preenchendo os bits à esquerda com zeros. |
+| `Or(c1, ...)` | Exige que pelo menos uma das restrições fornecidas seja verdadeira. |
+| `Not(c)` | Nega uma restrição lógica. |
+| `ZeroExt(k, x)` | Aumenta a largura de `x` em `k` bits, acrescentando zeros à esquerda; aqui permite calcular com `2n` bits. |
+
+## Lista de tarefas do enunciado
+
+Estado com base no que já está implementado em `ex3_py.py`:
+
+- [x] Modelar o SFOTS: variáveis, estado inicial, transições e estado de erro.
+- [x] Usar `k`-indução para verificar `x*y + z = a*b`, tanto com aritmética de `n` bits como numa versão alargada a `2n` bits.
+- [x] Restringir os valores iniciais a `a, b < 2^(n/2)` e verificar que o estado `ERROR` não é alcançado.
+- [x] Codificar a verificação de terminação por BMC, procurando caminhos que não chegam a `STOP` nem a `ERROR` em `4n` passos.
+- [ ] Executar `ex3_py.py` e confirmar que os resultados do solver correspondem ao esperado antes de entregar.

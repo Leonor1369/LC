@@ -3,6 +3,16 @@ from z3 import *
 n = 4                                   # nº de bits (começa pequeno!)
 LOOP, ODD, EVEN, STOP, ERROR = range(5) # localizações do CFA
 
+# BitVec(nome, n) cria um vetor de bits de largura fixa; a aritmética é módulo 2^n.
+# ULT(a, b) verifica se a < b tratando os vetores como números sem sinal.
+# Extract(high, low, x) extrai de x os bits entre high e low, inclusive.
+# BitVecVal(valor, n) cria uma constante representada por n bits.
+# And(c1, ...) combina restrições com conjunção lógica.
+# LShR(x, k) desloca x k posições à direita e preenche com zeros à esquerda.
+# Or(c1, ...) combina restrições com disjunção lógica.
+# Not(c) nega uma restrição lógica.
+# ZeroExt(k, x) aumenta a largura de x em k bits, acrescentando zeros à esquerda.
+
 # ---------- 1. ESTADO: um dicionário de variáveis por instante i ----------
 def declare(i):
     s = {"pc": BitVec(f"pc{i}", 3)}
