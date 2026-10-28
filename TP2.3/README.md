@@ -11,7 +11,9 @@ Considere o problema descrito no documento +Lógica Computacional: Multiplicaç�
 https://share.google/aimode/80OTdhEEscQJAbLsy
 
 
-Puma melhor interpretaçao do enado foi usado o claude no seguinte chat: https://claude.ai/share/c4fb403c-1ec4-4e9b-a545-3804fbf2d7da
+Puma melhor interpretaçao do enunciado foi usado o claude no seguinte chat: https://claude.ai/share/c4fb403c-1ec4-4e9b-a545-3804fbf2d7da
+
+para a file tree: https://claude.ai/share/8f2ac999-7b1b-4f50-8779-9317812be298
 
 ## Referência rápida: operadores Z3
 
