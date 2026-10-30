@@ -98,4 +98,87 @@ def _(mo):
  
     **Estado de erro.** $E(s)\equiv \bigwedge_c \lnot s_c$.
     """)
-    return
+    return 
+
+    app.cell
+def _(And, Bool, BoolVal, If, NASCE, Not, Or, SOBREVIVE, Sum, VIVAS_T0,
+      is_true, random):
+    class GameOfLife:
+        def __init__(self, N, modo, iniciais=None, nasce=NASCE, sobrevive=SOBREVIVE, vivas0=VIVAS_T0):
+            assert N > 3 and modo in ("sync", "async")
+            self.N, self.modo, self.vivas0 = N, modo, vivas0
+            self.nasce, self.sobrevive = set(nasce), set(sobrevive)
+            R = range(N + 2)
+            self.normais  = [(i, j) for i in range(1, N + 1) for j in range(1, N + 1)]
+            self.iniciais = [(i, j) for i in R for j in R if i == 0 or j == 0]
+            self.finais   = [(i, j) for i in R for j in R
+                             if (i, j) not in self.iniciais and (i == N + 1 or j == N + 1)]
+            if iniciais is None:               # simbólicas: todas as configurações de uma vez
+                self.cte = {c: Bool(f"ini_{c[0]}_{c[1]}") for c in self.iniciais}
+            else:                              # concretas (sorteadas)
+                self.cte = {c: BoolVal(bool(iniciais[c])) for c in self.iniciais}
+            self.cte.update({c: BoolVal(False) for c in self.finais})
+            self.viz = {c: [(c[0] + a, c[1] + b) for a in (-1, 0, 1) for b in (-1, 0, 1) if (a, b) != (0, 0)]
+                        for c in self.normais}
+ 
+        # ---- variáveis de estado: uma cópia por instante ----
+        def declare(self, k):
+            return {c: Bool(f"c{c[0]}_{c[1]}_t{k}") for c in self.normais}
+ 
+        def val(self, s, c):
+            return s[c] if c in s else self.cte[c]
+ 
+        def regra(self, s, c):
+            n = Sum([If(self.val(s, d), 1, 0) for d in self.viz[c]])
+            return Or(Or([n == v for v in self.nasce]),
+                      And(s[c], Or([n == v for v in self.sobrevive])))
+ 
+        def init(self, s):
+            return And([s[c] == BoolVal(bool(self.vivas0(*c))) for c in self.normais])
+ 
+        def trans(self, s, p):
+            if self.modo == "sync":
+                return And([p[c] == self.regra(s, c) for c in self.normais])
+            muda = [And(p[c] != s[c], p[c] == self.regra(s, c),
+                        And([p[d] == s[d] for d in self.normais if d != c]))
+                    for c in self.normais]
+            estavel = And(And([self.regra(s, c) == s[c] for c in self.normais]),
+                          And([p[c] == s[c] for c in self.normais]))
+            return Or(muda + [estavel])
+ 
+        def erro(self, s):
+            return And([Not(s[c]) for c in self.normais])
+ 
+        # ---- visualização: '#'/'.' inicial viva/morta, 'X'/'-' normal viva/morta, ' ' final ----
+        def grelha(self, m, s):
+            linhas = []
+            for i in range(self.N + 2):
+                r = ""
+                for j in range(self.N + 2):
+                    c = (i, j)
+                    if c in s:
+                        r += "X" if is_true(m.eval(s[c], model_completion=True)) else "-"
+                    elif c in self.finais:
+                        r += " "
+                    else:
+                        r += "#" if is_true(m.eval(self.cte[c], model_completion=True)) else "."
+                linhas.append(r)
+            return linhas
+ 
+ 
+    def mostra_traco(M, m, tr, cols=6):
+        gs = [M.grelha(m, s) for s in tr]
+        w = M.N + 2
+        for b in range(0, len(gs), cols):
+            bloco = gs[b:b + cols]
+            print("   ".join(f"t={b + i}".ljust(w) for i in range(len(bloco))))
+            for r in range(w):
+                print("   ".join(g[r] for g in bloco))
+            print()
+ 
+ 
+    def sorteia_iniciais(N, p, seed):
+        rng = random.Random(seed)
+        R = range(N + 2)
+        return {c: rng.random() < p for c in [(i, j) for i in R for j in R if i == 0 or j == 0]}
+    return GameOfLife, mostra_traco, sorteia_iniciais
