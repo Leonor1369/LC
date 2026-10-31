@@ -18,3 +18,5 @@ This repository contains all coursework for the Logica Computacional class, incl
 
 - [TP1.1](./TP1.1/)
 - [TP1.2](./TP1.2/)
+- [TP2.1](./TP2.1/)
+- [TP2.3](./TP2.3/)
