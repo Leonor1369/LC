@@ -15,35 +15,39 @@ Puma melhor interpretaçao do enunciado foi usado o claude no seguinte chat: htt
 
 para a file tree: https://claude.ai/share/8f2ac999-7b1b-4f50-8779-9317812be298
 
-## Referência rápida: operadores Z3
+## Referência rápida: operadores pySMT usados no notebook
 
-Os operadores abaixo são usados em `ex3_py.py` para modelar o programa com
-vetores de bits. Um `BitVec` tem largura fixa: operações aritméticas mantêm
-essa largura e, por isso, podem sofrer overflow (aritmética módulo `2^n`).
+O notebook usa pySMT para construir fórmulas com vetores de bits e o solver
+Z3 para as resolver. Um `BitVec` tem largura fixa: operações aritméticas
+mantêm essa largura e, por isso, podem sofrer overflow (aritmética módulo
+`2^n`). O vetor não é, por si só, assinado ou sem sinal; isso depende da
+operação de comparação ou da extensão usada.
 
 | Operador | O que faz neste exercício |
 | --- | --- |
-| `BitVec(nome, n)` | Declara uma variável simbólica com `n` bits. |
-| `ULT(a, b)` | Compara `a < b` como números **sem sinal**. |
-| `Extract(high, low, x)` | Extrai de `x` os bits do índice `high` ao `low`, inclusive. |
-| `BitVecVal(valor, n)` | Cria uma constante com o valor e a largura de `n` bits. |
-| `And(c1, ...)` | Exige que todas as restrições fornecidas sejam verdadeiras. |
-| `LShR(x, k)` | Desloca `x` `k` bits à direita, preenchendo os bits à esquerda com zeros. |
-| `Or(c1, ...)` | Exige que pelo menos uma das restrições fornecidas seja verdadeira. |
-| `Not(c)` | Nega uma restrição lógica. |
-| `ZeroExt(k, x)` | Aumenta a largura de `x` em `k` bits, acrescentando zeros à esquerda; aqui permite calcular com `2n` bits. |
+| `Symbol(nome, BVType(n))` | Declara uma variável simbólica com `n` bits. |
+| `BV(valor, n)` | Cria uma constante BitVec com largura `n`. |
+| `BVULT(a, b)` | Compara `a < b` como números **sem sinal**. |
+| `BVSGE(a, b)` | Compara `a >= b` como números **com sinal**. |
+| `BVExtract(x, alto, baixo)` | Extrai de `x` os bits dos índices `alto` a `baixo`, inclusive. |
+| `BVZExt(x, k)` | Aumenta a largura de `x` em `k` bits, acrescentando zeros à esquerda. |
+| `BVSExt(x, k)` | Aumenta a largura de `x` em `k` bits, repetindo o bit de sinal à esquerda. |
+| `BVAdd(a, b)`, `BVSub(a, b)`, `BVMul(a, b)` | Soma, subtrai e multiplica vetores de bits; o resultado mantém a largura dos operandos. |
+| `BVLShl(x, k)`, `BVLShr(x, k)` | Deslocam os bits à esquerda ou à direita; o deslocamento à direita preenche com zeros. |
+| `BVAnd(a, b)` | Aplica AND bit a bit aos vetores de bits. |
+| `And(...)`, `Or(...)`, `Not(c)`, `Equals(a, b)` | Constroem conjunções, disjunções, negações e igualdade lógica para as fórmulas do solver. |
 
 ## Lista de tarefas do enunciado
 
-Estado com base no código atual. As caixas assinaladas indicam funcionalidades
-já codificadas em `ex3_py.py`; ainda falta validar os resultados e completar os
-itens pendentes abaixo.
+Estado com base no notebook Marimo. É possível escolher `n = 8` ou `n = 16`;
+as provas por k-indução do invariante e da segurança são executadas apenas
+para `n <= 8`, e a validação exaustiva está fixa em `n = 8`.
 
 - [x] Modelar o SFOTS: variáveis, estado inicial, transições e estado de erro.
 - [x] Usar `k`-indução para verificar `x*y + z = a*b`, tanto com aritmética de `n` bits como numa versão alargada a `2n` bits.
 - [x] Restringir os valores iniciais a `a, b < 2^(n/2)` e verificar que o estado `ERROR` não é alcançado.
-- [x] Codificar a verificação de terminação por BMC, procurando caminhos que não chegam a `STOP` nem a `ERROR` em `4n` passos.
-- [ ] Generalizar e validar o exercício para diferentes valores de `n` (o script atual usa apenas `n = 4`).
-- [ ] Completar o notebook Marimo com a explicação de todas as partes: modelo SFOTS, transições, overflow, propriedades, `k`-indução, segurança e terminação.
-- [ ] Criar e executar testes para validar o modelo e os resultados do solver, incluindo diferentes valores de `n`.
-- [ ] Executar `ex3_py.py` e confirmar que os resultados do solver correspondem ao esperado antes de entregar.
+- [x] Codificar a verificação de terminação: o notebook prova a descida de uma variante, ausência de bloqueio e procura por BMC caminhos que não chegam a `STOP` nem a `ERROR` em `4n` passos.
+- [x] Completar o notebook Marimo com a explicação do modelo SFOTS, transições, overflow, propriedades, `k`-indução, segurança e terminação.
+- [x] Permitir selecionar `n = 8` ou `n = 16` no notebook e adaptar o modelo ao valor escolhido; para `n = 16`, as provas por k-indução do invariante e da segurança são omitidas por custo computacional.
+- [x] Criar e executar testes para validar o modelo e os resultados do solver, incluindo diferentes valores de `n`.
+- [x] Executar o notebook e confirmar que os resultados apresentados pelo solver correspondem ao esperado antes de entregar.
