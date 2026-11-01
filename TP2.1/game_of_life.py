@@ -57,7 +57,7 @@ def _(mo):
     """)
     return
 
-    @app.cell
+@app.cell
 def _():
     N         = 16                     
     MODO      = "sync"                   # "sync": todas as células mudam; "async": uma e só uma muda
@@ -69,7 +69,7 @@ def _():
     K_MAX     = 30                       # limite para BMC / k-indução
     return K_MAX, MODO, N, NASCE, P_VIVA, SEED, SOBREVIVE, VIVAS_T0
 
-    @app.cell
+@app.cell
 def _(mo):
     mo.md(r"""
     ## 1. A máquina de estados finita
