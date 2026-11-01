@@ -100,7 +100,7 @@ def _(mo):
     """)
     return 
 
-    app.cell
+@app.cell
 def _(And, Bool, BoolVal, If, NASCE, Not, Or, SOBREVIVE, Sum, VIVAS_T0,
       is_true, random):
     class GameOfLife:
@@ -183,7 +183,7 @@ def _(And, Bool, BoolVal, If, NASCE, Not, Or, SOBREVIVE, Sum, VIVAS_T0,
         return {c: rng.random() < p for c in [(i, j) for i in R for j in R if i == 0 or j == 0]}
     return GameOfLife, mostra_traco, sorteia_iniciais
 
-    app.cell
+@app.cell
 def _(GameOfLife, MODO, N, P_VIVA, SEED, Solver, mostra_traco,
       sorteia_iniciais):
     INICIAIS = sorteia_iniciais(N, P_VIVA, SEED)
