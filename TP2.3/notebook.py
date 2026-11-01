@@ -124,6 +124,9 @@ class Mult:
 @app.function
 def resolve(*formulas):
     """Modelo das fórmulas, ou None se forem insatisfazíveis."""
+    # O solver Z3 recebe uma coleção de restrições lógicas e tenta satisfazer todas ao mesmo tempo.
+    # Se a conjunção das fórmulas for satisfazível, devolve um modelo concreto para as variáveis;
+    # caso contrário, devolve None, que interpretamos como "fórmulas inconsistentes".
     with Solver(name="z3") as solver:
         for f in formulas:
             solver.add_assertion(f)
@@ -132,13 +135,18 @@ def resolve(*formulas):
 
 @app.function
 def unroll(M, k):
-    # k transições precisam de k+1 estados
+    # A relação de transição T(s,s') descreve um passo. Para um caminho de k passos, precisamos de
+    # k+1 instâncias de estado: s0, s1, ..., sk. Cada estado é um dicionário com pc, a, b, x, y, z.
+    # O resultado devolve os estados simbólicos e as restrições de transição entre estados consecutivos.
     tr = [M.declare(i) for i in range(k + 1)]
     return tr, [M.trans(tr[i], tr[i + 1]) for i in range(k)]
 
 
 @app.function
 def valor(M, m, e):
+    # Converte um valor de BitVec resultado do solver para um inteiro Python.
+    # Em modo com sinal, os BitVec têm representação em complemento para dois;
+    # quando o bit mais significativo está a 1, devemos interpretar o valor como negativo.
     v = m.get_py_value(e)
     if M.com_sinal and v >= 2 ** (M.n - 1):
         v -= 2 ** M.n
@@ -147,6 +155,9 @@ def valor(M, m, e):
 
 @app.function
 def mostra(M, m, tr):
+    # Esta rotina converte um traço simbólico obtido do solver numa tabela legível para o humano.
+    # Cada estado do traço corresponde a um instante de execução da máquina e contém valores concretos
+    # para pc, x, y e z. O objetivo é mostrar a sequência de estados até atingir STOP ou ERROR.
     linhas = [f"{'t':>3} {'pc':>6} {'x':>6} {'y':>6} {'z':>6}   x*y+z"]
     for i, s in enumerate(tr):
         pc = m.get_py_value(s['pc'])
@@ -159,6 +170,10 @@ def mostra(M, m, tr):
 
 @app.function
 def kinducao(M, P, K, extra=None):
+    # K-indução: verificamos que a propriedade P é válida para a transição do sistema em qualquer k.
+    # O caso base exige que P seja verdadeiro em todos os estados iniciais até k-1 passos.
+    # O passo indutivo exige que a validade de P em k-1 estados consecutivos implique a validade em k.
+    # Se existir um contra-exemplo, devolvemos o modelo e o caminho correspondente.
     for k in range(1, K + 1):
         # caso base: k estados a partir de I
         tr, T = unroll(M, k - 1)
@@ -175,6 +190,10 @@ def kinducao(M, P, K, extra=None):
 
 @app.function
 def invariantes(M):
+    # Invariante do programa em aritmética modular (BitVec) e versão exata em 2n bits.
+    # A primeira versão afirma que x*y + z = a*b, mas sem contexto extra pode falhar em estados não alcançáveis.
+    # A segunda versão reforça a invariantização com extensão para 2n bits e exige x,y,z >= 0, eliminando estados
+    # inconsistentes para o caso com sinal.
     W = M.W
     P_mod = lambda s: Equals(BVAdd(BVMul(s['x'], s['y']), s['z']),
                              BVMul(s['a'], s['b']))
@@ -188,6 +207,9 @@ def invariantes(M):
 @app.function
 def bmc(M, mau, K, extra=None):
     """Primeiro k <= K em que `mau` é alcançável: (k, modelo, estados)."""
+    # BMC (Bounded Model Checking) cria um caminho progressivo de estados desde o início do programa e,
+    # para cada comprimento k, pergunta se existe alguma execução de tamanho k que viola a propriedade mau.
+    # Quando encontra um modelo, devolve o passo em que a propriedade falha e o traço correspondente.
     with Solver(name="z3") as solver:
         tr = [M.declare(0)]
         solver.add_assertion(M.init(tr[0], extra))
@@ -206,6 +228,8 @@ def bmc(M, mau, K, extra=None):
 @app.function
 def termina_J(M):
     """Invariante auxiliar J: pc <= 4, ODD => y ímpar, EVEN => y par e != 0."""
+    # J estrutura a informação semântica que usaremos para provar terminação: o programa só pode estar num
+    # dos nós do CFA e, em cada uma das ramificações ODD/EVEN, y tem a paridade correta.
     impar = lambda s: Equals(BVAnd(s['y'], M.um), M.um)
     par = lambda s: Equals(BVAnd(s['y'], M.um), M.zero)
     return lambda s: And(BVULE(s['pc'], BV(4, 3)),
@@ -216,6 +240,8 @@ def termina_J(M):
 @app.function
 def termina_V(M):
     """Variante V = 3y + r(pc), calculada em n+2 bits sem sinal (não há overflow)."""
+    # V é uma medida de progressão: em LOOP vale mais do que em EVEN/ODD, e estes valem mais do que STOP/ERROR.
+    # Como y diminui ao longo das iterações, a medida garante que a execução não pode ciclar indefinidamente.
     w = M.n + 2
     r_pc = lambda s: Ite(M.esta(s, LOOP), BV(2, w),
                          Ite(Or(M.esta(s, ODD), M.esta(s, EVEN)), BV(1, w), BV(0, w)))
@@ -225,6 +251,10 @@ def termina_V(M):
 @app.function
 def decresce(M, J, V):
     """True se J(s) /\\ ~terminal(s) /\\ T(s,s') => V(s') < V(s) (fórmula insatisfazível)."""
+    # Esta checagem formaliza a segunda condição da prova de terminação: a partir de qualquer estado
+    # que respeita J, não terminal, e que tenha um passo válido da transição, a variante deve diminuir.
+    # Se a conjunção for satisfazível, então existe um contra-exemplo em que o sistema avança sem progredir,
+    # o que invalida a garantia de terminação.
     s0, s1 = M.declare(0), M.declare(1)
     return resolve(J(s0), Not(M.terminal(s0)), M.trans(s0, s1),
                    Not(BVULT(V(s1), V(s0)))) is None
@@ -233,6 +263,9 @@ def decresce(M, J, V):
 @app.function
 def sem_bloqueio(M, J):
     """True se todo o estado não terminal que satisfaz J tem alguma guarda ativa."""
+    # Um sistema pode ser "bem-fundado" em termos de variante, mas ainda assim bloquear-se se não houver
+    # transição ativa a partir de um estado não terminal. A verificação de ausência de bloqueio garante que
+    # cada estado compatível com J tem pelo menos uma guarda que se pode disparar.
     s0 = M.declare(0)
     return resolve(J(s0), Not(M.terminal(s0)),
                    Not(Or(list(M.guards(s0).values())))) is None
@@ -273,6 +306,8 @@ def _():
 
 @app.cell
 def _():
+    # Seleção do tamanho do word e do modo de aritmética: em modo com sinal as comparações de grandeza
+    # e as extensões passam a usar semântica de complemento para dois; sem sinal, o modelo é mais simples.
     n_ui = mo.ui.dropdown(options=["8", "16"], value="8", label="n (bits)")
     sinal_ui = mo.ui.switch(label="com sinal")
     K_MAX = 6      # limite para a k-indução (invariante e segurança reforçada)
@@ -298,6 +333,8 @@ def _():
 
 @app.cell
 def _(Mult, n_ui, sinal_ui):
+    # Instancia o modelo de verificação para o tamanho e sinal escolhidos. Todas as funções que seguem
+    # usam a mesma instância `M`, para que as provas e os contra-exemplos correspondam ao mesmo sistema.
     n = int(n_ui.value)
     M = Mult(n, sinal_ui.value)
     return M, n
@@ -315,6 +352,8 @@ def _():
 
 @app.cell
 def _(M, mostra, n, resolve, unroll):
+    # Escolhe valores iniciais e pergunta ao solver se existe algum caminho válido do estado inicial até
+    # o final para esses valores. Quando existe, mostramos o traço concreto como depuração do sistema.
     _a0, _b0 = (13, 11) if n >= 5 else (5, 3)
     _tr, _T = unroll(M, 4 * n)
     _m = resolve(M.init(_tr[0]), Equals(_tr[0]['a'], BV(_a0, n)),
@@ -343,6 +382,9 @@ def _():
 
 @app.cell
 def _(K_MAX, M, invariantes, kinducao):
+    # Testa a propriedade do invariante em duas formulações: a modular e a exata.
+    # A versão modular é a mais direta, mas pode admitir estados impossíveis que não são alcançáveis;
+    # a versão exata reforça a propriedade com extensões de largura e condições de não negatividade.
     P_mod, P_exato = invariantes(M)
     _t0 = time.time()
     _r_mod = kinducao(M, P_mod, K_MAX)[0]
