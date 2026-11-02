@@ -340,7 +340,7 @@ def _(And, Not, Or, Solver, TIMEOUT_MS, TIMEOUT_PASSO_MS, is_true, sat,
             s.pop()
             if r == unknown:
                 return dict(resultado="inconclusivo", k=k)
-        return dict(resultado="unconclusivo", k=K)
+        return dict(resultado="inconclusivo", k=K)
 
 
     def kinducao(M, P, K):
