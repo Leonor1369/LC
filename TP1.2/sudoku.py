@@ -457,7 +457,7 @@ def _(cube):
 
 
 @app.cell
-def _(restricao_blocos, restricao_colunas, restricao_linhas):
+def _(restricao_blocos, srestricao_colunas, restricao_linhas):
     def grupos_sudoku(n):
         """Junta C1 + C2 + C3 (as pistas, C4, vêm à parte) (R6)."""
         return (

@@ -27,7 +27,7 @@ Todos os parâmetros estão na célula **Parâmetros**:
 
 | parâmetro | significado | valor por omissão |
 |---|---|---|
-| `N` | dimensão da grelha de células normais (N > 3) | 6 |
+| `N` | dimensão da grelha de células normais (N > 16) |
 | `MODO` | `"sync"`: todas as células mudam; `"async"`: uma e só uma muda | `"sync"` |
 | `P_VIVA` | probabilidade de uma célula inicial estar viva | 0.5 |
 | `SEED` | semente do sorteio das células iniciais | 2026 |
