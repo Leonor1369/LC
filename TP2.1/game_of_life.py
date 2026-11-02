@@ -54,7 +54,7 @@ def _(mo):
 
     Todos os parâmetros do problema estão nesta célula. `MODO` seleciona a relação de transição.
 
-    A regra B/S também é um parâmetro (`NASCE`, `SOBREVIVE`). Assim é fácil estudar o impacto de pequenas modificações ao enunciado (ver a última secção).
+    A regra B/S também é um parâmetro (`NASCE`, `SOBREVIVE`). Assim é fácil pereceber o impacto de pequenas modificações ao enunciado.
 
     A profundidade das verificações **não é adivinhada**: no modo `sync` é calculada a partir do número de estados alcançáveis (ver a célula *Profundidade*). No modo `async` usa-se `K_ASYNC`, que só é preciso para P1 e para a leitura LTL da P2.
     """)
@@ -593,7 +593,7 @@ def _(mo):
     mo.md(r"""
     ## 7. Conclusões
 
-    **Resultados com $N=17$** (o enunciado pede $N>16$), `SEED = 2026`, cada modo corrido separadamente:
+    **Resultados com $N=17$**, `SEED = 2026`, cada modo corrido separadamente:
 
     | | `sync` ($K_{MAX}=A+1=10$) | `async` ($K_{MAX}=$ `K_ASYNC` $=12$) |
     |---|---|---|
@@ -601,7 +601,7 @@ def _(mo):
     | **P1** (todas as configurações) | **falsa**: há configurações que levam ao erro em 3 transições | **falsa**: erro em 9 transições |
     | **P2**, leitura LTL | **falsa**: ponto fixo em $t=8$ | **falsa**: estado estável (laço justo) em 5 transições |
     | **P2**, leitura "desde o início" | **falsa**: 272 das 289 células normais estão mortas em todos os estados alcançáveis | não corrida (sem limite útil para $K$); verdadeira para $N=4$ pela enumeração explícita |
-    | tempo | cerca de 1 min 40 s | cerca de 40 s |
+   
 
     **Validação com $N=4$**, onde a enumeração explícita é possível nos dois modos: o Z3 dá os mesmos resultados que a BFS. No modo `sync` há 12 estados alcançáveis, P1 provada, ponto fixo em $t=11$ e as células $(4,1)$ e $(4,4)$ sempre mortas. 10,1% das 2048 configurações da moldura levam ao erro, no mínimo em 3 transições. No modo `async` o erro surge em 9 transições, há um estado estável em 5, e a leitura "desde o início" da P2 é **verdadeira** nos 65 144 estados alcançáveis.
 
@@ -815,6 +815,7 @@ def _(test_async_muda_uma_celula, test_async_stuttering,
       test_contagem_celulas, test_profundidade_sync, test_regra_blinker,
       test_regra_bloco, test_regra_igual_contagem, test_resultados_enunciado,
       test_vizinhos, test_z3_igual_explicito):
+
     # ---------- correr os testes dentro do notebook ----------
     _testes = [test_contagem_celulas, test_vizinhos, test_regra_igual_contagem, test_regra_bloco,
                test_regra_blinker, test_async_muda_uma_celula, test_async_stuttering,
@@ -830,6 +831,21 @@ def _(test_async_muda_uma_celula, test_async_stuttering,
     print(f"\n{len(_testes) - _falhas}/{len(_testes)} testes passaram")
     return
 
+@app.cell
+def _(mo):
+    mo.md(r"""
+    ## Utilização de LLMs
+
+    Neste trabalho usámos o Claude, através de claude.ai.
+
+    O LLM ajudou-nos a estruturar o início do projeto e a perceber a
+    estrutura pedida no enunciado.
+
+    Nenhuma resposta do LLM foi aceite sem ser executada e testada.
+    Link: https://claude.ai/share/9ce9eff8-7cad-495e-a01c-86717367da33
+
+""")
+    return
 
 if __name__ == "__main__":
     app.run()
