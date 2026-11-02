@@ -1,2 +1,6 @@
 __marimo__/
+__pycache__/
+.ipynb_checkpoints/
+.DS_Store
 aulas/
+
