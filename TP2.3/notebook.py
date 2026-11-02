@@ -168,22 +168,32 @@ def mostra(M, m, tr):
 
 
 @app.function
+def kinduction_always(M, P, k, extra=None):
+    # Formato da ficha 8 para um k fixo (declare/init/trans vêm de M):
+    #   caso base: k estados s0..s(k-1) com init(s0), trans entre consecutivos e algum P(si) falso;
+    #   passo:     k+1 estados com trans entre consecutivos, P nos k primeiros e P falso no último.
+    # Devolve None se as duas verificações são insatisfazíveis, ou ("base"|"passo", (modelo, estados)).
+    tr, T = unroll(M, k - 1)
+    m = resolve(M.init(tr[0], extra), *T, Or([Not(P(s)) for s in tr]))
+    if m is not None:
+        return "base", (m, tr)
+    tr, T = unroll(M, k)
+    m = resolve(*T, *[P(s) for s in tr[:-1]], Not(P(tr[-1])))
+    if m is not None:
+        return "passo", (m, tr)
+    return None
+
+
+@app.function
 def kinducao(M, P, K, extra=None):
-    # K-indução: verificamos que a propriedade P é válida para a transição do sistema em qualquer k.
-    # O caso base exige que P seja verdadeiro em todos os estados iniciais até k-1 passos.
-    # O passo indutivo exige que a validade de P em k-1 estados consecutivos implique a validade em k.
-    # Se existir um contra-exemplo, devolvemos o modelo e o caminho correspondente.
+    # Tenta k = 1, 2, ..., K com `kinduction_always` e pára no primeiro k que prova P.
+    # Se a base falhar, P é falso (contra-exemplo real); se só o passo falhar, tenta-se k maior.
     for k in range(1, K + 1):
-        # caso base: k estados a partir de I
-        tr, T = unroll(M, k - 1)
-        m = resolve(M.init(tr[0], extra), *T, Or([Not(P(s)) for s in tr]))
-        if m is not None:
-            return f"FALSO (contra-exemplo no caso base, k={k})", (m, tr)
-        # passo indutivo
-        tr, T = unroll(M, k)
-        m = resolve(*T, *[P(s) for s in tr[:-1]], Not(P(tr[-1])))
-        if m is None:
+        falha = kinduction_always(M, P, k, extra)
+        if falha is None:
             return f"PROVADO com k={k}", None
+        if falha[0] == "base":
+            return f"FALSO (contra-exemplo no caso base, k={k})", falha[1]
     return f"INCONCLUSIVO até k={K}", None
 
 
@@ -305,13 +315,12 @@ def _():
 
 @app.cell
 def _():
-    # Seleção do tamanho do word e do modo de aritmética: em modo com sinal as comparações de grandeza
+    # Seleção do modo de aritmética (n é fixo a 8): em modo com sinal as comparações de grandeza
     # e as extensões passam a usar semântica de complemento para dois; sem sinal, o modelo é mais simples.
-    n_ui = mo.ui.dropdown(options=["8", "16"], value="8", label="n (bits)")
     sinal_ui = mo.ui.switch(label="com sinal")
     K_MAX = 6     # limite para a k-indução (invariante e segurança reforçada)
-    mo.hstack([n_ui, sinal_ui], justify="start")
-    return K_MAX, n_ui, sinal_ui
+    sinal_ui
+    return K_MAX, sinal_ui
 
 
 @app.cell
@@ -331,10 +340,11 @@ def _():
 
 
 @app.cell
-def _(n_ui, sinal_ui):
-    # Instancia o modelo de verificação para o tamanho e sinal escolhidos. Todas as funções que seguem
+def _(sinal_ui):
+    # Instancia o modelo de verificação com n = 8 e o sinal escolhido. Todas as funções que seguem
     # usam a mesma instância `M`, para que as provas e os contra-exemplos correspondam ao mesmo sistema.
-    n = int(n_ui.value)
+    # (n = 16 foi retirado: a k-indução com multiplicações de 16 bits demora demasiado.)
+    n = 8
     M = Mult(n, sinal_ui.value)
     return M, n
 
@@ -475,12 +485,9 @@ def _(M, n):
     _ra = kinducao(M, _J, 3)[0]
     _rb = "PROVADO" if decresce(M, _J, _V) else "FALSO"
     _rc = "PROVADO" if sem_bloqueio(M, _J) else "FALSO"
-    if n <= 8:
-        _tr, _T = unroll(M, 4 * n)
-        _rd = "PROVADO" if resolve(M.init(_tr[0]), *_T,
-                                   *[Not(M.terminal(s)) for s in _tr]) is None else "FALSO"
-    else:
-        _rd = "(omitido para n > 8)"
+    _tr, _T = unroll(M, 4 * n)
+    _rd = "PROVADO" if resolve(M.init(_tr[0]), *_T,
+                               *[Not(M.terminal(s)) for s in _tr]) is None else "FALSO"
     mo.md(f"""
     * (a) invariante auxiliar J: **{_ra}**
     * (b) V decresce estritamente fora dos estados terminais: **{_rb}**
@@ -556,7 +563,7 @@ def _():
     | 4. terminação | variante $V=3y+r(pc)$ com invariante auxiliar e ausência de bloqueio (secção 4) |
 
     Os valores de $k$ e os resultados `PROVADO`/`FALSO` das secções 2 a 4 são calculados pelo solver para o
-    $n$ e o modo (com ou sem sinal) escolhidos no topo.
+    modo (com ou sem sinal) escolhido no topo, com $n=8$.
 
     ## 7. Impacto de pequenas modificações nos requisitos
 
@@ -564,7 +571,7 @@ def _():
     |---|---|---|
     | overflow **com sinal** | ligar o interruptor "com sinal" | a condição $a,b<2^{n/2}$ pode deixar de garantir segurança, porque o produto pode atingir $2^{n-1}$, que já muda o sinal. A extensão exata passa a usar `BVSExt` |
     | condição mais fraca $a\cdot b<2^n$ | `pequenos` com `BVULT(BVMul(W(a), W(b)), 2**n)` | o argumento do reforço só usa $ab<2^n$ |
-    | $n$ maior (16, 32) | dropdown | as secções 2 e 3 são omitidas (multiplicações de $n$ e $2n$ bits pesadas demais para o solver); o exemplo, o BMC do erro e a terminação (a)–(c) continuam a correr |
+    | $n$ maior (16, 32) | alterar `n` na célula que cria `M` | a k-indução das secções 2 e 3 fica demasiado lenta (multiplicações de $n$ e $2n$ bits pesadas para o solver), por isso o notebook fica fixo em $n=8$ |
     | outra ordem de teste | `guards` e `trans` | o invariante e a variante mantêm-se; com sinal, `y > 0` é necessário para a terminação |
     | remover a precedência do erro | tirar `Not(ovf…)` das guardas normais | aparecem traços que continuam após o overflow com valores truncados |
     """)
