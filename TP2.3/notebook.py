@@ -3,7 +3,6 @@ import marimo
 __generated_with = "0.25.1"
 app = marimo.App(width="medium")
 
-
 with app.setup:
     import marimo as mo
     import time
@@ -310,7 +309,7 @@ def _():
     # e as extensões passam a usar semântica de complemento para dois; sem sinal, o modelo é mais simples.
     n_ui = mo.ui.dropdown(options=["8", "16"], value="8", label="n (bits)")
     sinal_ui = mo.ui.switch(label="com sinal")
-    K_MAX = 6      # limite para a k-indução (invariante e segurança reforçada)
+    K_MAX = 6     # limite para a k-indução (invariante e segurança reforçada)
     mo.hstack([n_ui, sinal_ui], justify="start")
     return K_MAX, n_ui, sinal_ui
 
@@ -332,7 +331,7 @@ def _():
 
 
 @app.cell
-def _(Mult, n_ui, sinal_ui):
+def _(n_ui, sinal_ui):
     # Instancia o modelo de verificação para o tamanho e sinal escolhidos. Todas as funções que seguem
     # usam a mesma instância `M`, para que as provas e os contra-exemplos correspondam ao mesmo sistema.
     n = int(n_ui.value)
@@ -351,10 +350,10 @@ def _():
 
 
 @app.cell
-def _(M, mostra, n, resolve, unroll):
+def _(M, n):
     # Escolhe valores iniciais e pergunta ao solver se existe algum caminho válido do estado inicial até
     # o final para esses valores. Quando existe, mostramos o traço concreto como depuração do sistema.
-    _a0, _b0 = (13, 11) if n >= 5 else (5, 3)
+    _a0, _b0 = (13, 17) if n >= 5 else (5, 3)
     _tr, _T = unroll(M, 4 * n)
     _m = resolve(M.init(_tr[0]), Equals(_tr[0]['a'], BV(_a0, n)),
                  Equals(_tr[0]['b'], BV(_b0, n)), *_T)
@@ -381,7 +380,7 @@ def _():
 
 
 @app.cell
-def _(K_MAX, M, invariantes, kinducao):
+def _(K_MAX, M):
     # Testa a propriedade do invariante em duas formulações: a modular e a exata.
     # A versão modular é a mais direta, mas pode admitir estados impossíveis que não são alcançáveis;
     # a versão exata reforça a propriedade com extensões de largura e condições de não negatividade.
@@ -415,7 +414,7 @@ def _():
 
 
 @app.cell
-def _(M, bmc, mostra, n, valor):
+def _(M, n):
     _r = bmc(M, M.erro, 4 * n)
     if _r is None:
         _txt = f"ERROR não alcançável até {4 * n} transições"
@@ -429,7 +428,7 @@ def _(M, bmc, mostra, n, valor):
 
 
 @app.cell
-def _(K_MAX, M, P_exato, kinducao, n):
+def _(K_MAX, M, P_exato, n):
     _h = BV(2 ** (n // 2), n)
     pequenos = lambda s: And(BVULT(s['a'], _h), BVULT(s['b'], _h))
     seguro = lambda s: And(Not(M.erro(s)), pequenos(s))
@@ -470,7 +469,7 @@ def _():
 
 
 @app.cell
-def _(M, decresce, kinducao, n, resolve, sem_bloqueio, termina_J, termina_V, unroll):
+def _(M, n):
     _J, _V = termina_J(M), termina_V(M)
     _t0 = time.time()
     _ra = kinducao(M, _J, 3)[0]
