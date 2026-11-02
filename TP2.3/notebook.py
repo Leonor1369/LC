@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.25.1"
+__generated_with = "0.25.2"
 app = marimo.App(width="medium")
 
 with app.setup:
@@ -363,7 +363,7 @@ def _():
 def _(M, n):
     # Escolhe valores iniciais e pergunta ao solver se existe algum caminho válido do estado inicial até
     # o final para esses valores. Quando existe, mostramos o traço concreto como depuração do sistema.
-    _a0, _b0 = (13, 17) if n >= 5 else (5, 3)
+    _a0, _b0 = (11, 17) if n >= 5 else (5, 3)
     _tr, _T = unroll(M, 4 * n)
     _m = resolve(M.init(_tr[0]), Equals(_tr[0]['a'], BV(_a0, n)),
                  Equals(_tr[0]['b'], BV(_b0, n)), *_T)
