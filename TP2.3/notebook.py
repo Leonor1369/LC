@@ -547,6 +547,7 @@ def _():
           "|---|---|---|---|---|---|---|\n" + "\n".join(_linhas))
     return
 
+
 @app.cell(hide_code=True)
 def _():
     mo.md(r"""
@@ -575,11 +576,15 @@ def _():
     em $n$ bits. É por isso que, com sinal, $a,b<2^{n/2}$ já não chega (p.ex. $n=8$: $15\cdot15=225>127$).
 
     **Terminação.** $V=3y+r(pc)$ decresce estritamente em todas as transições não terminais
-    (`LOOP→EVEN/ODD`: $3y+2\to3y+1$; `EVEN→LOOP`: $\to3\tfrac y2+2\le3y-1$; `ODD→LOOP`: $\to3y-1$;
-    `LOOP→STOP` e erros $\to0$), e $V\ge0$ é um inteiro, logo o programa termina para qualquer $n$.
+    (`LOOP→EVEN/ODD`: $3y+2\to3y+1$;
+    `EVEN→LOOP`: $\to3\tfrac y2+2\le3y-1$;
+    `ODD→LOOP`: $\to3y-1$;
+    `LOOP→STOP` e erros $\to0$),
+    e $V\ge0$ é um inteiro, logo o programa termina para qualquer $n$.
     Há no máximo $n-1$ passos `EVEN` e $n$ passos `ODD`, portanto no máximo $4n-1$ transições.
     """)
     return
+
 
 @app.cell(hide_code=True)
 def _():
@@ -611,7 +616,6 @@ def _():
 
 @app.cell(hide_code=True)
 def _():
-
     mo.md(r"""
     ## 9. Testes
 
@@ -625,6 +629,7 @@ def _():
     ```
     """)
     return
+
 
 @app.cell(hide_code=True)
 def _():
@@ -640,6 +645,7 @@ def _():
     | Claude | estrutura de pastas e ficheiros do projeto (*file tree*) | [conversa](https://claude.ai/share/8f2ac999-7b1b-4f50-8779-9317812be298) |
     """)
     return
+
 
 if __name__ == "__main__":
     app.run()
