@@ -280,10 +280,24 @@ def sem_bloqueio(M, J):
                    Not(Or(list(M.guards(s0).values())))) is None
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _():
     mo.md(r"""
     # TP2 — Exercício 3: multiplicação de inteiros como SFOTS (BitVec, pySMT)
+
+    **Raciocínio do trabalho.** O programa (multiplicação por somas e deslocamentos) é modelado como um
+    sistema de transições (SFOTS) sobre `BitVec`, o que reproduz o comportamento real do hardware, incluindo
+    o *wrap-around*. Como os `BitVec` não assinalam overflow, este é detetado explicitamente e leva a um
+    estado `ERROR`. Sobre este modelo fazem-se quatro perguntas, cada uma com a técnica adequada:
+
+    1. **Execução** — *unrolling* da relação de transição para ver um traço concreto;
+    2. **Invariante** $x\cdot y+z=a\cdot b$ — k-indução (prova) e BMC (procura de contra-exemplos);
+    3. **Segurança** ($\mathsf G\,\lnot\mathrm{ERROR}$ sob $a\cdot b<2^n$) — k-indução e prova analítica;
+    4. **Terminação** — variante $V$ e invariante auxiliar $J$.
+
+    O solver valida o modelo para $n=8$. Como o custo da k-indução cresce muito com a largura (multiplicações
+    de $n$ e $2n$ bits), a generalização a qualquer $n$ é feita por **prova analítica** (secção 6), que se
+    apoia no mesmo invariante e na mesma variante.
 
     ```
     INPUT a, b                        # n bits, a, b >= 0
@@ -293,22 +307,6 @@ def _():
     EVEN:     else:           x, y, z = x<<1, y>>1, z    (overflow em x<<1 → ERROR)
     STOP:  assert z == a*b
     ```
-
-    O autómato de controlo (CFA) tem cinco nodos:
-
-    | nodo | ação | ligações |
-    |---|---|---|
-    | `LOOP` (inicial) | teste do ciclo | `y = 0` → `STOP`; `y ≠ 0` e par → `EVEN`; `y ≠ 0` e ímpar → `ODD` |
-    | `EVEN` | `x, y = x << 1, y >> 1` | overflow em `x << 1` → `ERROR` (precedência); senão → `LOOP` |
-    | `ODD` | `y, z = y − 1, z + x` | overflow em `z + x` → `ERROR` (precedência); senão → `LOOP` |
-    | `STOP` | fim (`z = a·b`) | laço em si próprio |
-    | `ERROR` | overflow | laço em si próprio |
-
-    Os `BitVec` fazem aritmética módulo $2^n$ e **nunca assinalam overflow**, por isso a deteção é programada:
-
-    - **sem sinal:** overflow em `z + x` se houver *carry*; overflow em `x << 1` se o bit $n-1$ de `x` for 1;
-    - **com sinal:** overflow em `z + x` se os dois bits de topo da soma em $n+1$ bits forem diferentes;
-      overflow em `x << 1` se os bits $n-1$ e $n-2$ de `x` forem diferentes (o sinal muda).
     """)
     return
 
@@ -323,7 +321,7 @@ def _():
     return K_MAX, sinal_ui
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _():
     mo.md(r"""
     ## 1. O SFOTS (classe `Mult`)
@@ -373,7 +371,7 @@ def _(M, n):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _():
     mo.md(r"""
     ## 2. O invariante $x\cdot y+z=a\cdot b$ por k-indução
@@ -407,7 +405,7 @@ def _(K_MAX, M):
     return (P_exato,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _():
     mo.md(r"""
     ## 3. Segurança com $a<2^{n/2}\land b<2^{n/2}$
@@ -460,7 +458,7 @@ def _(K_MAX, M, P_exato, n):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _():
     mo.md(r"""
     ## 4. Terminação (propriedade de animação)
@@ -499,7 +497,7 @@ def _(M, n):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _():
     mo.md(r"""
     ## 5. Validação exaustiva (sem SMT)
@@ -549,11 +547,44 @@ def _():
           "|---|---|---|---|---|---|---|\n" + "\n".join(_linhas))
     return
 
-
-@app.cell
+@app.cell(hide_code=True)
 def _():
     mo.md(r"""
-    ## 6. Conclusões
+    ## 6. Prova analítica para qualquer $n$
+
+    A k-indução com $n=16$ é lenta porque o solver faz *bit-blasting* das multiplicações. O argumento
+    matemático, porém, não depende de $n$. Seja $L=2^n$ (sem sinal) ou $L=2^{n-1}$ (com sinal).
+    O overflow é $x+z\ge L$ em `ODD` e $2x\ge L$ em `EVEN`. Enquanto não há overflow, a aritmética
+    módulo $2^n$ coincide com a dos inteiros.
+
+    **Hipótese $H$:** $a\cdot b<L$ (vale com $a,b<2^{n/2}$ sem sinal, e com $a,b<2^{(n-1)/2}$ com sinal).
+
+    **Invariante** $\mathrm{Inv}\equiv x,y,z\in[0,L)\;\land\;x\cdot y+z=a\cdot b\;\land\;
+    (pc=\mathrm{ODD}\to y\text{ ímpar})\;\land\;(pc=\mathrm{EVEN}\to y\text{ par},\,y\ge2)\;\land\;pc\ne\mathrm{ERROR}$.
+
+    É **1-indutivo**:
+
+    - `EVEN`: $y\ge2\Rightarrow 2x\le xy\le xy+z=ab<L$, logo não há overflow; $x'y'=2x\cdot\tfrac y2=xy$;
+    - `ODD`: $y\ge1\Rightarrow x+z\le xy+z=ab<L$, logo não há *carry*; $x(y-1)+(z+x)=xy+z$;
+    - `LOOP`, `STOP`: não alteram $x,y,z$; a paridade vem da guarda.
+
+    Logo $\mathsf G\,\lnot\mathrm{ERROR}$, e em `STOP` ($y=0$) tem-se $z=ab$. As cláusulas de paridade são
+    o que falta para $k=1$ (secção 2): sem elas há estados inalcançáveis que quebram o passo.
+
+    **$H$ é exata:** se $ab\ge L$, nenhuma execução chega a `STOP` sem overflow, porque $z=ab$ não cabe
+    em $n$ bits. É por isso que, com sinal, $a,b<2^{n/2}$ já não chega (p.ex. $n=8$: $15\cdot15=225>127$).
+
+    **Terminação.** $V=3y+r(pc)$ decresce estritamente em todas as transições não terminais
+    (`LOOP→EVEN/ODD`: $3y+2\to3y+1$; `EVEN→LOOP`: $\to3\tfrac y2+2\le3y-1$; `ODD→LOOP`: $\to3y-1$;
+    `LOOP→STOP` e erros $\to0$), e $V\ge0$ é um inteiro, logo o programa termina para qualquer $n$.
+    Há no máximo $n-1$ passos `EVEN` e $n$ passos `ODD`, portanto no máximo $4n-1$ transições.
+    """)
+    return
+
+@app.cell(hide_code=True)
+def _():
+    mo.md(r"""
+    ## 7. Conclusões
 
     | alínea | resultado |
     |---|---|
@@ -565,23 +596,24 @@ def _():
     Os valores de $k$ e os resultados `PROVADO`/`FALSO` das secções 2 a 4 são calculados pelo solver para o
     modo (com ou sem sinal) escolhido no topo, com $n=8$.
 
-    ## 7. Impacto de pequenas modificações nos requisitos
+    ## 8. Impacto de pequenas modificações nos requisitos
 
     | modificação | alteração | efeito |
     |---|---|---|
     | overflow **com sinal** | ligar o interruptor "com sinal" | a condição $a,b<2^{n/2}$ pode deixar de garantir segurança, porque o produto pode atingir $2^{n-1}$, que já muda o sinal. A extensão exata passa a usar `BVSExt` |
     | condição mais fraca $a\cdot b<2^n$ | `pequenos` com `BVULT(BVMul(W(a), W(b)), 2**n)` | o argumento do reforço só usa $ab<2^n$ |
-    | $n$ maior (16, 32) | alterar `n` na célula que cria `M` | a k-indução das secções 2 e 3 fica demasiado lenta (multiplicações de $n$ e $2n$ bits pesadas para o solver), por isso o notebook fica fixo em $n=8$ |
+    | geral em $n$ | com $ab<L$, o invariante $x y+z=ab$ com paridade é 1-indutivo, logo não há `ERROR`; $V=3y+r(pc)$ garante a terminação em $\le4n-1$ passos (secção 6) |
     | outra ordem de teste | `guards` e `trans` | o invariante e a variante mantêm-se; com sinal, `y > 0` é necessário para a terminação |
     | remover a precedência do erro | tirar `Not(ovf…)` das guardas normais | aparecem traços que continuam após o overflow com valores truncados |
     """)
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _():
+
     mo.md(r"""
-    ## 8. Testes
+    ## 9. Testes
 
     Os testes estão fora do notebook, em `test_mult.py`, e importam daqui a classe `Mult` e as funções
     de verificação (declaradas com `@app.class_definition` e `@app.function`):
@@ -589,10 +621,25 @@ def _():
     ```
     pip install pytest
     pytest test_mult.py -v
+
     ```
     """)
     return
 
+@app.cell(hide_code=True)
+def _():
+    mo.md(r"""
+    ## 10. Utilização de LLMs
+
+    Declaração das ferramentas de IA usadas na realização deste trabalho, com as respetivas conversas:
+
+    | ferramenta | utilização | ligação |
+    |---|---|---|
+    | Google AI Mode | pesquisa de apoio | [conversa](https://share.google/aimode/80OTdhEEscQJAbLsy) |
+    | Claude | melhor interpretação do enunciado | [conversa](https://claude.ai/share/c4fb403c-1ec4-4e9b-a545-3804fbf2d7da) |
+    | Claude | estrutura de pastas e ficheiros do projeto (*file tree*) | [conversa](https://claude.ai/share/8f2ac999-7b1b-4f50-8779-9317812be298) |
+    """)
+    return
 
 if __name__ == "__main__":
     app.run()
