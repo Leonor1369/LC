@@ -16,6 +16,7 @@ from notebook import (
 )
 
 N = 4          # largura usada nos testes (rápida)
+# exceto as execuç~oes concretas que usam n = 8
 
 
 # ---------------------------------------------------------------------------
@@ -23,7 +24,8 @@ N = 4          # largura usada nos testes (rápida)
 # ---------------------------------------------------------------------------
 
 def vale(formula, valores):
-    """Substitui os símbolos por constantes e diz se a fórmula fica TRUE."""
+    """Substitui os símbolos por constantes e diz se a fórmula fica TRUE.
+    Serve para avaliar fórmulas sem chamar o solver."""
     return simplify(substitute(formula, valores)).is_true()
 
 
@@ -37,12 +39,21 @@ def transicao_ok(M, antes, depois):
         valores[st['x']], valores[st['y']], valores[st['z']] = BV(x, M.n), BV(y, M.n), BV(z, M.n)
     return vale(M.trans(s, p), valores)
 
+def executa(M, a, b, passos):
+    """ fixa a e b, desenrola a transição passos vezes e devolve o pc e o z finais."""
+    estados, transicoes = unroll(M, passos)
+    m = resolve(M.init(estados[0]),
+                And(estados[0]['a'].Equals(BV(a, M.n)), estados[0]['b'].Equals(BV(b, M.n))),
+                *transicoes)
+    final = estados[-1]
+    return m.get_py_value(final['pc']), m.get_py_value(final['z'])
 
 # ---------------------------------------------------------------------------
 # overflow
 # ---------------------------------------------------------------------------
 
 def test_overflow_soma_sem_sinal():
+    """para todos os pares (x, z) de 4 bits, ovf_soma é verdadeiro exatamente quando x + z > 15."""
     M = Mult(N, com_sinal=False)
     s = M.declare(0)
     for x in range(16):
@@ -52,6 +63,7 @@ def test_overflow_soma_sem_sinal():
 
 
 def test_overflow_soma_com_sinal():
+    """ o mesmo em complemento para dois: há overflow quando a soma sai de [−8, 7]."""
     M = Mult(N, com_sinal=True)
     s = M.declare(0)
     com_sinal = lambda v: v - 16 if v >= 8 else v
@@ -62,6 +74,7 @@ def test_overflow_soma_com_sinal():
 
 
 def test_overflow_shift():
+    """para todo o x, ovf_shift dá overflow quando 2x > 15 (sem sinal) ou quando 2x sai de [−8, 7] (com sinal)."""
     s_u, s_s = Mult(N, False).declare(0), Mult(N, True).declare(0)
     for x in range(16):
         sem = vale(Mult(N, False).ovf_shift(s_u), {s_u['x']: BV(x, N)})
@@ -75,6 +88,7 @@ def test_overflow_shift():
 # ---------------------------------------------------------------------------
 
 def test_transicoes_do_loop():
+    """a partir de LOOP, y = 0 vai para STOP, y par vai para EVEN e y ímpar vai para ODD, sem alterar x, y, z."""
     M = Mult(N)
     assert transicao_ok(M, (LOOP, 3, 0, 0), (STOP, 3, 0, 0))     # y = 0
     assert transicao_ok(M, (LOOP, 3, 6, 0), (EVEN, 3, 6, 0))     # y par
@@ -82,12 +96,14 @@ def test_transicoes_do_loop():
 
 
 def test_transicao_even_e_odd():
+    """EVEN faz x<<1 e y>>1; ODD faz y−1 e z+x; ambos voltam a LOOP."""
     M = Mult(N)
     assert transicao_ok(M, (EVEN, 3, 6, 1), (LOOP, 6, 3, 1))     # x<<1, y>>1
     assert transicao_ok(M, (ODD, 3, 5, 1), (LOOP, 3, 4, 4))      # y-1, z+x
 
 
 def test_overflow_leva_a_erro():
+    """com overflow, EVEN e ODD vão para ERROR e a transição normal para LOOP é rejeitada (precedência do erro)."""
     M = Mult(N)
     assert transicao_ok(M, (EVEN, 8, 2, 0), (ERROR, 8, 2, 0))    # 8<<1 não cabe em 4 bits
     assert not transicao_ok(M, (EVEN, 8, 2, 0), (LOOP, 0, 1, 0))
@@ -95,6 +111,7 @@ def test_overflow_leva_a_erro():
 
 
 def test_stop_e_error_ficam_parados():
+    """STOP e ERROR têm laço em si próprios e não podem sair para LOOP."""
     M = Mult(N)
     assert transicao_ok(M, (STOP, 3, 0, 6), (STOP, 3, 0, 6))
     assert transicao_ok(M, (ERROR, 3, 2, 6), (ERROR, 3, 2, 6))
@@ -113,24 +130,18 @@ def test_unroll_tem_k_mais_um_estados():
         assert len(transicoes) == k
 
 
-def executa(M, a, b, passos):
-    estados, transicoes = unroll(M, passos)
-    m = resolve(M.init(estados[0]),
-                And(estados[0]['a'].Equals(BV(a, M.n)), estados[0]['b'].Equals(BV(b, M.n))),
-                *transicoes)
-    final = estados[-1]
-    return m.get_py_value(final['pc']), m.get_py_value(final['z'])
-
-
 def test_execucao_13_vezes_11():
+    """com n = 8, a execução termina em STOP com z = 143."""
     assert executa(Mult(8), 13, 11, 32) == (STOP, 143)
 
 
 def test_execucao_com_overflow():
+    """200*3 não cabe em 8 bits sem sinal, logo acaba em ERROR."""
     assert executa(Mult(8), 200, 3, 32)[0] == ERROR
 
 
 def test_execucao_com_sinal():
+    """9*7 dá STOP com z = 63; 100·3 dá ERROR (300 > 127)."""
     assert executa(Mult(8, com_sinal=True), 9, 7, 32) == (STOP, 63)
     assert executa(Mult(8, com_sinal=True), 100, 3, 32)[0] == ERROR
 
@@ -140,6 +151,7 @@ def test_execucao_com_sinal():
 # ---------------------------------------------------------------------------
 
 def test_invariante_provado_com_k_2():
+    """x·y+z = a·b é provado com k = 2, nas versões modular e exata."""
     M = Mult(N)
     P_mod, P_exato = invariantes(M)
     assert kinducao(M, P_mod, 6)[0] == "PROVADO com k=2"
@@ -147,24 +159,28 @@ def test_invariante_provado_com_k_2():
 
 
 def test_invariante_nao_e_1_indutivo():
+    """com K = 1 o resultado é INCONCLUSIVO (estados inalcançáveis quebram o passo)."""
     M = Mult(N)
     P_mod, _ = invariantes(M)
     assert kinducao(M, P_mod, 1)[0].startswith("INCONCLUSIVO")
 
 
 def test_propriedade_falsa_e_detetada():
+    """a propriedade ¬ERROR sem restrições é declarada FALSO, porque ERROR é alcançável."""
     M = Mult(N)
     resultado, _ = kinducao(M, lambda s: Not(M.erro(s)), 6)     # ERROR é alcançável
     assert resultado.startswith("FALSO")
 
 
 def test_bmc_encontra_erro_sem_restricao():
+    """o BMC encontra o erro em k = 2 (LOOP → EVEN → ERROR)."""
     M = Mult(N)
     k, _, _ = bmc(M, M.erro, 4 * N)
     assert k == 2                                               # LOOP -> EVEN -> ERROR
 
 
 def test_seguranca_com_a_b_pequenos():
+    """com a, b < 2^(N/2): o BMC não encontra erro; a propriedade reforçada prova-se com k = 2; a direta só com k = 4N."""
     M = Mult(N)
     _, P_exato = invariantes(M)
     h = BV(2 ** (N // 2), N)
@@ -182,6 +198,7 @@ def test_seguranca_com_a_b_pequenos():
 # ---------------------------------------------------------------------------
 
 def test_terminacao():
+    """J é invariante (k-indução), V decresce fora dos estados terminais, e não há bloqueio."""
     M = Mult(N)
     J, V = termina_J(M), termina_V(M)
     assert kinducao(M, J, 3)[0].startswith("PROVADO")           # J é invariante
@@ -190,5 +207,6 @@ def test_terminacao():
 
 
 def test_variante_errada_e_rejeitada():
+    """com V = y, decresce devolve falso, porque em LOOP → EVEN/ODD o y não muda. Confirma que a verificação não aceita qualquer variante."""
     M = Mult(N)
     assert not decresce(M, termina_J(M), lambda s: s['y'])      # V = y não decresce em LOOP
