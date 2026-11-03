@@ -13,9 +13,30 @@ def _():
     from collections import deque
     from z3 import (Solver, Bool, BoolVal, And, Or, Not, Xor, Implies, PbEq,
                     AtMost, AtLeast, sat, unsat, unknown, is_true, is_false)
-    return (And, AtLeast, AtMost, Bool, BoolVal, Implies, Not, Or, PbEq,
-            Solver, Xor, deque, is_false, is_true, itertools, mo, random, sat,
-            time, unknown, unsat)
+
+    return (
+        And,
+        AtLeast,
+        AtMost,
+        Bool,
+        BoolVal,
+        Implies,
+        Not,
+        Or,
+        PbEq,
+        Solver,
+        Xor,
+        deque,
+        is_false,
+        is_true,
+        itertools,
+        mo,
+        random,
+        sat,
+        time,
+        unknown,
+        unsat,
+    )
 
 
 @app.cell
@@ -73,8 +94,18 @@ def _():
     K_ASYNC    = 12                      # profundidade no modo async (P1 e P2 LTL)
     TIMEOUT_MS = 120_000                 # tempo máximo de cada chamada ao solver (ms)
     TIMEOUT_PASSO_MS = 2_000             # tempo máximo do passo indutivo (atalho opcional)
-    return (K_ASYNC, MODO, N, NASCE, P_VIVA, SEED, SOBREVIVE, TIMEOUT_MS,
-            TIMEOUT_PASSO_MS, VIVAS_T0)
+    return (
+        K_ASYNC,
+        MODO,
+        N,
+        NASCE,
+        P_VIVA,
+        SEED,
+        SOBREVIVE,
+        TIMEOUT_MS,
+        TIMEOUT_PASSO_MS,
+        VIVAS_T0,
+    )
 
 
 @app.cell
@@ -114,8 +145,24 @@ def _(mo):
 
 
 @app.cell
-def _(And, AtLeast, AtMost, Bool, BoolVal, Implies, NASCE, Not, Or, PbEq,
-      SOBREVIVE, VIVAS_T0, Xor, is_false, is_true, random):
+def _(
+    And,
+    AtLeast,
+    AtMost,
+    Bool,
+    BoolVal,
+    Implies,
+    NASCE,
+    Not,
+    Or,
+    PbEq,
+    SOBREVIVE,
+    VIVAS_T0,
+    Xor,
+    is_false,
+    is_true,
+    random,
+):
     class GameOfLife:
         def __init__(self, N, modo, iniciais=None, nasce=NASCE, sobrevive=SOBREVIVE, vivas0=VIVAS_T0):
             assert N > 3 and modo in ("sync", "async")
@@ -211,6 +258,7 @@ def _(And, AtLeast, AtMost, Bool, BoolVal, Implies, NASCE, Not, Or, PbEq,
         rng = random.Random(seed)
         R = range(N + 2)
         return {c: rng.random() < p for c in [(i, j) for i in R for j in R if i == 0 or j == 0]}
+
     return GameOfLife, mostra_traco, sorteia_iniciais
 
 
@@ -248,12 +296,21 @@ def _(NASCE, SOBREVIVE, VIVAS_T0, deque):
         sempre_morta = [normais[k] for k in range(N * N) if all(not (s >> k) & 1 for s in dist)]
         return dict(alcancaveis=len(dist), profundidade=max(dist.values()), erro=dist.get(0),
                     sempre_viva=sempre_viva, sempre_morta=sempre_morta)
+
     return (explicito,)
 
 
 @app.cell
-def _(GameOfLife, MODO, N, P_VIVA, SEED, Solver, mostra_traco,
-      sorteia_iniciais):
+def _(
+    GameOfLife,
+    MODO,
+    N,
+    P_VIVA,
+    SEED,
+    Solver,
+    mostra_traco,
+    sorteia_iniciais,
+):
     INICIAIS = sorteia_iniciais(N, P_VIVA, SEED)
     M_conc = GameOfLife(N, MODO, INICIAIS)     # células iniciais sorteadas
     M_simb = GameOfLife(N, MODO)               # células iniciais simbólicas (todas as configurações)
@@ -308,8 +365,18 @@ def _(mo):
 
 
 @app.cell
-def _(And, Not, Or, Solver, TIMEOUT_MS, TIMEOUT_PASSO_MS, is_true, sat,
-      unknown, unsat):
+def _(
+    And,
+    Not,
+    Or,
+    Solver,
+    TIMEOUT_MS,
+    TIMEOUT_PASSO_MS,
+    is_true,
+    sat,
+    unknown,
+    unsat,
+):
     def novo_solver(timeout=TIMEOUT_MS):
         s = Solver()
         s.set("timeout", timeout)
@@ -399,7 +466,8 @@ def _(And, Not, Or, Solver, TIMEOUT_MS, TIMEOUT_PASSO_MS, is_true, sat,
                 return dict(resultado="contra-exemplo", k=k, l=l, vivas=vivas, mortas=mortas,
                             modelo=m, traco=tr)
         return dict(resultado="inconclusivo", k=K)
-    return bmc, distintos, kinducao, laco, novo_solver, unroll
+
+    return bmc, kinducao, laco, novo_solver
 
 
 @app.cell
@@ -418,7 +486,7 @@ def _(mo):
 
 
 @app.cell
-def _(K_MAX, M_conc, MODO, Not, bmc, kinducao, mostra_traco, time):
+def _(K_MAX, MODO, M_conc, Not, bmc, kinducao, mostra_traco, time):
     def propriedade1(M, nome):
         t0 = time.time()
         r = bmc(M, M.erro, K_MAX)
@@ -492,7 +560,7 @@ def _(K_MAX, M_conc, laco, mostra_traco, time):
 
 
 @app.cell
-def _(K_MAX, M_conc, MODO, novo_solver, sat, time, unknown):
+def _(K_MAX, MODO, M_conc, novo_solver, sat, time, unknown):
     def propriedade2_inicio(M, K):
         """Modo sync: para cada célula, existe estado alcançável com o valor oposto
         ao inicial? BMC incremental partilhado por todas as células até K = A+1,
@@ -530,7 +598,7 @@ def _(K_MAX, M_conc, MODO, novo_solver, sat, time, unknown):
     else:
         print("Leitura 'desde o início': não é corrida no modo async (sem limite útil para K).")
         print("Ver a enumeração explícita (secção 6) com N=4: a propriedade é VERDADEIRA.")
-    return (propriedade2_inicio,)
+    return
 
 
 @app.cell
@@ -601,7 +669,7 @@ def _(mo):
     | **P1** (todas as configurações) | **falsa**: há configurações que levam ao erro em 3 transições | **falsa**: erro em 9 transições |
     | **P2**, leitura LTL | **falsa**: ponto fixo em $t=8$ | **falsa**: estado estável (laço justo) em 5 transições |
     | **P2**, leitura "desde o início" | **falsa**: 272 das 289 células normais estão mortas em todos os estados alcançáveis | não corrida (sem limite útil para $K$); verdadeira para $N=4$ pela enumeração explícita |
-   
+
 
     **Validação com $N=4$**, onde a enumeração explícita é possível nos dois modos: o Z3 dá os mesmos resultados que a BFS. No modo `sync` há 12 estados alcançáveis, P1 provada, ponto fixo em $t=11$ e as células $(4,1)$ e $(4,4)$ sempre mortas. 10,1% das 2048 configurações da moldura levam ao erro, no mínimo em 3 transições. No modo `async` o erro surge em 9 transições, há um estado estável em 5, e a leitura "desde o início" da P2 é **verdadeira** nos 65 144 estados alcançáveis.
 
@@ -702,12 +770,24 @@ def _(BoolVal, GameOfLife, Or, Solver, is_true, sat):
         sol.add([s[c] == BoolVal(c in vivas) for c in M.normais])
         assert sol.check() == sat
         return is_true(sol.model().eval(formula, model_completion=True))
+
     return avalia, modelo_com, regra_python, sucessores
 
 
 @app.cell
-def _(GameOfLife, Not, avalia, bmc, explicito, kinducao, modelo_com, random,
-      regra_python, sorteia_iniciais, sucessores):
+def _(
+    GameOfLife,
+    Not,
+    avalia,
+    bmc,
+    explicito,
+    kinducao,
+    modelo_com,
+    random,
+    regra_python,
+    sorteia_iniciais,
+    sucessores,
+):
     def test_contagem_celulas():
         for n in range(4, 8):
             M = GameOfLife(n, "sync")
@@ -796,6 +876,7 @@ def _(GameOfLife, Not, avalia, bmc, explicito, kinducao, modelo_com, random,
         Ma = GameOfLife(4, "async", ini)
         assert bmc(Ma, Ma.erro, 12)["k"] == 9
         assert explicito(4, ini, "async")["erro"] == 9
+
     return (
         test_async_muda_uma_celula,
         test_async_stuttering,
@@ -811,10 +892,18 @@ def _(GameOfLife, Not, avalia, bmc, explicito, kinducao, modelo_com, random,
 
 
 @app.cell
-def _(test_async_muda_uma_celula, test_async_stuttering,
-      test_contagem_celulas, test_profundidade_sync, test_regra_blinker,
-      test_regra_bloco, test_regra_igual_contagem, test_resultados_enunciado,
-      test_vizinhos, test_z3_igual_explicito):
+def _(
+    test_async_muda_uma_celula,
+    test_async_stuttering,
+    test_contagem_celulas,
+    test_profundidade_sync,
+    test_regra_blinker,
+    test_regra_bloco,
+    test_regra_igual_contagem,
+    test_resultados_enunciado,
+    test_vizinhos,
+    test_z3_igual_explicito,
+):
 
     # ---------- correr os testes dentro do notebook ----------
     _testes = [test_contagem_celulas, test_vizinhos, test_regra_igual_contagem, test_regra_bloco,
@@ -831,6 +920,7 @@ def _(test_async_muda_uma_celula, test_async_stuttering,
     print(f"\n{len(_testes) - _falhas}/{len(_testes)} testes passaram")
     return
 
+
 @app.cell
 def _(mo):
     mo.md(r"""
@@ -843,9 +933,9 @@ def _(mo):
 
     Nenhuma resposta do LLM foi aceite sem ser executada e testada.
     Link: https://claude.ai/share/9ce9eff8-7cad-495e-a01c-86717367da33
-
-""")
+    """)
     return
+
 
 if __name__ == "__main__":
     app.run()
