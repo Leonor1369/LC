@@ -15,7 +15,7 @@ Considere o seguinte programa
     assert r^2 <= n < (r+1)^2
 ```
 
-As variáveis são inteiros sem sinal de $$\,w\,$$ bits (com $$w$$par). Considera-se estado de erro o “overflow” na soma $$\,s+t\,$$.
+As variáveis são inteiros sem sinal de w bits (com w par). Considera-se estado de erro o “overflow” na soma $$\,s+t\,$$.
 
 Pretende-se:
 
@@ -53,3 +53,7 @@ marimo edit TP3.2/notebook.py
 - [ ] Implementar uma função de ranking em CHCs ou os look-aheads.
 - [ ] Demonstrar a terminação em `stop` e a inacessibilidade de `error` no domínio seguro.
 - [ ] Executar o notebook até ao fim e verificar os resultados apresentados pelo solver.
+
+
+# LLM
+claude a explicar o que envolve o problema o CHC e o spacer https://claude.ai/share/fc243a5b-d02a-4e10-86f4-7e9ca4f854e9
